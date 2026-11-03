@@ -1,0 +1,3285 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mon Budget Zen</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Mon Budget Zen">
+    <meta name="theme-color" content="#2d2b5e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Bangers&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
+
+    <style>
+
+:root {
+    /* Ces variables sont écrasées dynamiquement par applyTheme() au chargement */
+    --hue: 250;
+    --sat: 60%;
+    --bg:  #2d2b5e;
+
+    --accent:        hsl(var(--hue), 80%, 65%);
+    --accent-dim:    hsl(var(--hue), 60%, 45%);
+    --accent-glow:   hsla(var(--hue), 80%, 60%, 0.35);
+
+    --card-bg:       hsla(var(--hue), 40%, 100%, 0.07);
+    --card-border:   hsla(var(--hue), 60%, 100%, 0.16);
+    --card-bg-white: hsla(var(--hue), 30%, 100%, 0.13);
+    --card-border-white: hsla(var(--hue), 40%, 100%, 0.30);
+
+    --section-bg:    hsla(var(--hue), 50%, 40%, 0.18);
+    --section-border:hsla(var(--hue), 50%, 50%, 0.25);
+    --section-color: hsl(var(--hue), 40%, 78%);
+
+    --cat-bg:        hsla(var(--hue), 40%, 50%, 0.06);
+    --cat-border:    hsla(var(--hue), 40%, 50%, 0.15);
+
+    --nav-active-bg: hsla(var(--hue), 70%, 55%, 0.30);
+    --nav-active-border: hsl(var(--hue), 70%, 60%);
+
+    --chip-oracle:   hsl(calc(var(--hue) + 30), 70%, 75%);
+    --chip-epargne:  hsl(calc(var(--hue) - 40), 70%, 80%);
+    --chip-libre:    hsl(140, 70%, 70%);
+    --chip-libre-bg: hsla(140, 60%, 50%, 0.15);
+    --chip-libre-border: hsla(140, 60%, 50%, 0.30);
+
+    --jauge-start:   hsl(0, 80%, 35%);
+    --jauge-mid:     hsl(45, 90%, 55%);
+    --jauge-end:     hsl(140, 70%, 60%);
+
+    --input-bg:      hsla(var(--hue), 30%, 10%, 0.80);
+    --input-border:  rgba(80,80,80,0.6);
+
+    --text: #f8fafc;
+    --blur: blur(8px);
+    --primary: hsl(var(--hue), 80%, 45%);
+    --primary-bright: hsl(calc(var(--hue) + 10), 90%, 58%);
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0; padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+body {
+    font-family: 'Patrick Hand', cursive;
+    color: var(--text);
+    background: var(--bg);
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+/* FOND BULLES */
+#bubbles-bg {
+    position: fixed; inset: 0; z-index: 0;
+    overflow: hidden;
+}
+
+#bg-base {
+    position: absolute; inset: 0;
+    transition: background 0.6s ease;
+}
+
+#bg-radials {
+    position: absolute; inset: 0;
+    transition: background 0.6s ease;
+}
+.bubble {
+    position: absolute; border-radius: 50%;
+    animation: floatBubble linear infinite; pointer-events: none;
+}
+@keyframes floatBubble {
+    0%   { transform: translateY(110vh) scale(0.8); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 0.7; }
+    100% { transform: translateY(-20vh) scale(1.1); opacity: 0; }
+}
+
+/* =============================================
+   LAYOUT GLOBAL
+   ============================================= */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 10;
+    padding: 12px 12px 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+/* =============================================
+   HEADER — ligne 1 : titre gauche, actions droite
+   ============================================= */
+.header-title-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.header-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.main-title {
+    font-family: 'Bangers', cursive;
+    font-size: 2.4rem;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    text-align: center;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.6), 0 0 30px var(--accent-glow);
+    margin: 0;
+    white-space: nowrap;
+}
+
+.title-chip {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 10px;
+    padding: 14px 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    position: relative;
+    overflow: hidden;
+    animation: titlePulse 2.5s ease-in-out infinite;
+}
+
+/* Reflet animé qui balaie la chip */
+.title-chip::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -75%;
+    width: 50%; height: 200%;
+    background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%);
+    animation: titleShine 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Halo coloré en fond */
+.title-chip::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 120%, var(--accent-glow), transparent 70%);
+    animation: titleHalo 2.5s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+
+.title-chip-euro {
+    font-family: 'Bangers', cursive;
+    font-size: 3.5rem;
+    color: var(--accent);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    animation: euroSpin 2s ease-in-out infinite alternate;
+    filter: drop-shadow(0 0 10px var(--accent)) drop-shadow(0 0 20px var(--accent-glow));
+}
+
+.title-chip-euro:last-child {
+    animation-direction: alternate-reverse;
+}
+
+.main-title {
+    position: relative;
+    z-index: 1;
+    animation: titleColorShift 3s ease-in-out infinite alternate;
+}
+
+@keyframes titlePulse {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4),
+                    inset 0 1px 0 rgba(255,255,255,0.12),
+                    0 0 0 1px var(--card-border);
+        border-color: var(--card-border);
+    }
+    50% {
+        box-shadow: 0 4px 40px rgba(0,0,0,0.5),
+                    inset 0 1px 0 rgba(255,255,255,0.25),
+                    0 0 30px 6px var(--accent-glow),
+                    0 0 0 2px var(--accent);
+        border-color: var(--accent);
+    }
+}
+
+@keyframes titleShine {
+    0%   { left: -75%; }
+    60%, 100% { left: 150%; }
+}
+
+@keyframes titleHalo {
+    from { opacity: 0.3; transform: scaleY(0.8); }
+    to   { opacity: 1;   transform: scaleY(1.2); }
+}
+
+@keyframes euroSpin {
+    0%   { transform: translateY(-6px) rotate(-15deg) scale(1);   }
+    50%  { transform: translateY(0px)  rotate(0deg)   scale(1.2); }
+    100% { transform: translateY(6px)  rotate(15deg)  scale(1);   }
+}
+
+@keyframes titleColorShift {
+    from { text-shadow: 2px 2px 8px rgba(0,0,0,0.6), 0 0 20px var(--accent-glow); }
+    to   { text-shadow: 2px 2px 8px rgba(0,0,0,0.6), 0 0 40px var(--accent), 0 0 60px var(--accent-glow); }
+}
+
+.header-spacer {
+    flex: 1;
+}
+
+.bg-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+#bgColorPicker {
+    width: 0; height: 0;
+    border: none; padding: 0; margin: 0;
+    opacity: 0; position: absolute; pointer-events: none;
+}
+
+.bg-picker-btn {
+    width: 32px; height: 32px;
+    border-radius: 9px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: rgba(255,255,255,0.75);
+    font-size: 16px; flex-shrink: 0;
+    transition: background 0.15s, transform 0.1s;
+}
+.bg-picker-btn:hover  { background: rgba(255,255,255,0.20); }
+.bg-picker-btn:active { transform: scale(0.94); }
+
+.pane-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.pane-header .section-title { margin-bottom: 0; }
+
+/* Bulle actions — icônes */
+.bubble-actions {
+    flex: 0 0 auto;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+}
+
+.icon-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg, rgba(100,100,140,0.9), rgba(60,60,100,0.95));
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.15) inset;
+}
+.icon-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 50%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.18), transparent);
+    border-radius: 14px 14px 0 0;
+    pointer-events: none;
+}
+.icon-btn i { font-size: 20px; line-height: 1; position: relative; z-index: 1; color: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4)); }
+.icon-btn .icon-tip {
+    font-family: 'Cinzel', serif;
+    font-size: 7px;
+    letter-spacing: 0.3px;
+    color: rgba(255,255,255,0.75);
+    text-transform: uppercase;
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+}
+.icon-btn:hover  { transform: scale(1.08); box-shadow: 0 8px 20px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.15) inset; }
+.icon-btn:active { transform: scale(0.94); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+
+.icon-btn.btn-reset {
+    background: linear-gradient(145deg, #ff5f57, #c0392b);
+    box-shadow: 0 4px 14px rgba(200,50,50,0.5), 0 1px 0 rgba(255,255,255,0.2) inset;
+}
+.icon-btn.btn-save {
+    background: linear-gradient(145deg, #5ac8fa, #0a84ff);
+    box-shadow: 0 4px 14px rgba(10,130,255,0.45), 0 1px 0 rgba(255,255,255,0.2) inset;
+}
+.icon-btn.btn-fin-mois {
+    background: linear-gradient(145deg, #ffd60a, #ff9f0a);
+    box-shadow: 0 4px 14px rgba(255,160,10,0.5), 0 1px 0 rgba(255,255,255,0.25) inset;
+}
+
+/* =============================================
+   PAGE ACCUEIL
+   ============================================= */
+#accueilPage {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    will-change: transform;
+}
+.accueil-actions-row {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 14px;
+    margin: 10px 0 24px;
+    background: none;
+    border: none;
+    flex-shrink: 0;
+}
+.header-montants.accueil-bulles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1.2fr 1fr;
+    gap: 14px;
+    margin: 10px 0 28px;
+    flex: 1;
+    min-height: 0;
+}
+.accueil-bulles .montant-chip {
+    height: 100%;
+    padding: 18px 14px;
+    justify-content: center;
+    gap: 10px;
+    min-width: 0;
+    overflow: hidden;
+}
+.accueil-bulles .chip-label { font-size: 15px; letter-spacing: 1px; }
+.accueil-bulles .chip-val { font-size: clamp(20px, 6.5vw, 42px); }
+.accueil-bulles .chip-val.val-libre { font-size: clamp(26px, 9vw, 56px); }
+.accueil-bulles .chip-wide { grid-column: 1 / -1; }
+.chip-val.val-encours { color: #ffaa44; }
+.montant-chip.chip-encours { border-color: rgba(255,170,68,0.35); }
+
+/* =============================================
+   HEADER — ligne 2 : 3 montants côte à côte
+   ============================================= */
+.header-montants {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.montant-chip {
+    flex: 1;
+    min-width: 0;
+    background: rgba(255,255,255,0.13);
+    border: 1px solid rgba(255,255,255,0.28);
+    border-radius: 20px;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2px;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+    min-height: 60px;
+    overflow: hidden;
+}
+
+.montant-chip.chip-libre {
+    background: var(--chip-libre-bg);
+    border-color: var(--chip-libre-border);
+}
+
+.montant-chip.chip-solde-initial {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.montant-chip.chip-solde-initial:hover  { transform: scale(1.08); box-shadow: 0 8px 20px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.15) inset; }
+.montant-chip.chip-solde-initial:active { transform: scale(0.94); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+
+.chip-label {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.chip-val {
+    font-family: 'Bangers', cursive;
+    font-size: 20px;
+    line-height: 1;
+    color: #fff;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chip-val.val-oracle  { color: var(--chip-oracle); }
+.chip-val.val-libre   { color: var(--chip-libre); font-size: 22px; }
+.chip-val.val-epargne { color: var(--chip-epargne); }
+
+
+.bg-panel {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 99999;
+    background: rgba(10,8,30,0.97);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    padding: 16px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 12px 48px rgba(0,0,0,0.7);
+    width: 90vw;
+    max-width: 320px;
+}
+.bg-panel.open { display: block; }
+
+/* Overlay derrière le panel sur mobile */
+.bg-panel-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99998;
+}
+.bg-panel-overlay.open { display: block; }
+
+.bg-panel-title {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.bg-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 7px;
+}
+
+.bg-option {
+    padding: 9px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.75);
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: background 0.15s, border-color 0.15s;
+}
+.bg-option:hover   { background: rgba(255,255,255,0.14); }
+.bg-option.active  {
+    border-color: var(--accent);
+    background: var(--section-bg);
+    color: #fff;
+}
+   ============================================= */
+.jauge-wrapper {
+    width: 100%;
+    height: 7px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 12px;
+}
+#bloodFill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, var(--jauge-start), var(--jauge-mid), var(--jauge-end));
+    transition: width 0.8s ease;
+    border-radius: 4px;
+}
+@keyframes dangerBlink {
+    0%, 100% { filter: brightness(1); }
+    50%       { filter: brightness(2.5); }
+}
+.gauge-danger { animation: dangerBlink 0.6s infinite; }
+
+/* =============================================
+   HISTORIQUE
+   ============================================= */
+.hist-card {
+    background: var(--cat-bg);
+    border: 1px solid var(--cat-border);
+    border-radius: 14px;
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+}
+.hist-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+    font-family: 'Cinzel', serif;
+}
+.hist-month {
+    font-size: 15px;
+    color: var(--text);
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+}
+.hist-card.hist-live { opacity: 0.7; border-style: dashed; }
+.hist-card.hist-closed { border-color: rgba(85,255,136,0.35); }
+.hist-status {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.5);
+}
+.hist-closed .hist-status { color: #55ff88; }
+
+.hist-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.hist-summary-chip {
+    background: var(--cat-bg);
+    border: 1px solid var(--cat-border);
+    border-radius: 16px;
+    padding: 7px 9px;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.hist-summary-label {
+    font-family: 'Cinzel', serif;
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: rgba(255,255,255,0.55);
+}
+.hist-summary-val {
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Cinzel', serif;
+}
+.val-revenus { color: #55ff88; }
+.val-charges { color: #ff8a65; }
+.val-epargne { color: #7dcfff; }
+.val-prev    { color: #bb9af7; }
+.val-reel    { color: #e0af68; }
+
+.hist-summary-grid--compact {
+    gap: 5px;
+    margin-bottom: 0;
+}
+.hist-summary-grid--compact .hist-summary-chip {
+    padding: 6px 8px;
+}
+
+@media (min-width: 768px) {
+    .hist-summary-grid { grid-template-columns: repeat(5, 1fr); }
+}
+.hist-delta { font-size: 15px; font-weight: 700; }
+.hist-delta.pos { color: #55ff88; }
+.hist-delta.neg { color: #ff5a5a; }
+.hist-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+.hist-stat {
+    background: rgba(255,255,255,0.05);
+    border-radius: 9px;
+    padding: 6px 8px;
+}
+.hist-stat-label {
+    font-family: 'Cinzel', serif;
+    font-size: 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 2px;
+}
+.hist-stat-value {
+    font-size: 14px;
+    color: var(--text);
+}
+.hist-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: rgba(255,255,255,0.55);
+    font-size: 15px;
+}
+.hist-empty i { font-size: 30px; display: block; margin-bottom: 8px; opacity: 0.6; }
+
+/* =============================================
+   SWIPE / COLONNES
+   ============================================= */
+#swipe-wrapper { overflow: hidden; width: 100%; }
+
+#swipe-track {
+    display: flex;
+    width: 300%;
+    transform: translateX(-33.3333%);
+    transition: transform 0.35s ease;
+}
+
+.view-pane {
+    width: 33.3333%;
+    padding: 0 4px;
+}
+
+.section-title {
+    display: inline-block;
+    padding: 5px 14px;
+    margin-bottom: 8px;
+    background: var(--section-bg);
+    border: 1px solid var(--section-border);
+    border-radius: 999px;
+    color: var(--section-color);
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+}
+
+/* =============================================
+   BARRE DE NAV
+   ============================================= */
+.nav-bar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0; width: 100%;
+    margin: 0;
+    background: none;
+    border: none;
+    display: flex;
+    gap: 6px;
+    padding: 6px 12px 10px;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.nav-btn {
+    flex: 0 1 120px; height: 36px;
+    /* Effet verre translucide */
+    background: linear-gradient(160deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.06) 55%, rgba(255,255,255,0.10) 100%);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.12);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    font-family: 'Bangers', cursive;
+    font-size: 13px; letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.08s, background 0.1s;
+}
+.nav-btn:active { transform: scale(0.96); }
+.nav-btn.active {
+    background: linear-gradient(160deg, rgba(255,255,255,0.25) 0%, var(--nav-active-bg) 60%);
+    box-shadow: 0 4px 16px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.4);
+    border-color: var(--nav-active-border);
+}
+
+/* =============================================
+   CARTES CATÉGORIES
+   ============================================= */
+.cat-card {
+    background: var(--cat-bg);
+    border: 1px solid var(--cat-border);
+    border-radius: 22px;
+    margin-bottom: 10px;
+    padding: 10px;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+}
+
+.cat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Cinzel', serif;
+    font-size: 12px; color: #ddd;
+    margin-bottom: 7px; letter-spacing: 1px;
+}
+
+/* ITEMS */
+.item-row {
+    display: flex; align-items: center;
+    gap: 7px; width: 100%; margin-bottom: 4px;
+}
+.item-row .item-label {
+    flex: 1 1 auto; font-size: 17px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.item-row .item-amount {
+    flex: 0 0 auto; font-size: 20px;
+    opacity: 0.8; min-width: 68px; text-align: right;
+}
+.item-row button {
+    flex: 0 0 auto; background: none; border: none;
+    color: #ff4500; font-size: 15px; cursor: pointer; padding: 0 3px;
+}
+
+/* INPUTS */
+input[type="text"], input[type="number"], #importCodeArea {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border); border-radius: 8px;
+    padding: 8px 10px; color: white;
+    font-family: 'Patrick Hand', cursive; font-size: 1rem;
+    margin-bottom: 8px; outline: none;
+}
+input:focus { border-color: var(--primary); }
+
+/* ZOOM PROGRESSIF AU FOCUS — grossit à la saisie, revient en douceur après validation */
+input[type="text"], input[type="number"], textarea {
+    transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease, border-color 0.2s ease;
+}
+input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+    transform: scale(1.18);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.45), 0 0 0 2px var(--primary-bright);
+    position: relative;
+    z-index: 5;
+}
+
+.input-plus-group { display: flex; align-items: center; gap: 7px; }
+.input-plus-group input { margin-bottom: 0; }
+.input-plus-group input[type="text"]   { flex: 3; }
+.input-plus-group input[type="number"] { flex: 1; max-width: 75px; }
+
+.btn-plus {
+    position: relative; flex: 0 0 46px; width: 46px; height: 38px;
+    border-radius: 8px; overflow: hidden;
+    border: 1px solid var(--primary-bright);
+    background: #000; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; padding: 0;
+}
+.btn-plus span {
+    position: relative; z-index: 2;
+    font-family: 'Bangers', cursive; font-size: 20px;
+    color: white; line-height: 0;
+}
+.btn-plus-video {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: 1; opacity: 0.7;
+}
+.btn-plus-green { border-color: #55ff88; }
+
+/* TRIBUTS */
+.tributs-card {
+    border-color: rgba(85,255,136,0.2);
+}
+
+/* =============================================
+   LOADER
+   ============================================= */
+#ritualLoader {
+    position: fixed; inset: 0; background: #000;
+    display: none; align-items: center; justify-content: center;
+    flex-direction: column; z-index: 30000;
+}
+.spinner {
+    width: 52px; height: 52px;
+    border: 4px solid rgba(255,255,255,0.1);
+    border-top: 4px solid #ff0000;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+.ritual-text { margin-top: 14px; font-family: 'Cinzel', serif; color: #ff0000; letter-spacing: 2px; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* =============================================
+   MODALS
+   ============================================= */
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); z-index: 10000;
+    align-items: center; justify-content: center; padding: 20px;
+}
+.modal-box {
+    background: #0a0a0f; border: 2px solid var(--accent);
+    border-radius: 22px; padding: 24px; width: 100%; max-width: 320px;
+    text-align: center; box-shadow: 0 0 30px var(--accent-glow);
+}
+.modal-title {
+    font-family: 'Cinzel', serif; font-size: 11px;
+    letter-spacing: 3px; color: #aaa; margin-bottom: 14px;
+}
+.modal-box input {
+    width: 100%; font-family: 'Bangers', cursive; font-size: 30px;
+    text-align: center; background: var(--section-bg);
+    border: 1px solid var(--accent); color: #fff;
+    border-radius: 8px; padding: 10px; margin-bottom: 14px; outline: none;
+}
+.modal-btn {
+    width: 100%; padding: 11px; border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1); color: #fff;
+    font-family: 'Cinzel', serif; font-size: 12px;
+    letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+}
+.modal-cancel {
+    display: block; margin: 10px auto 0;
+    color: #555; background: none; border: none; font-size: 12px; cursor: pointer;
+}
+
+
+/* =============================================
+   PC >= 768px
+   ============================================= */
+@media (min-width: 768px) {
+    .app-container { padding: 18px 20px 30px; max-width: 1600px; }
+
+    .main-title { font-size: 3rem; letter-spacing: 6px; }
+    .title-chip-euro { font-size: 4.5rem; }
+
+    #swipe-wrapper { overflow: visible; }
+    #swipe-track {
+        width: 100%; transform: none !important;
+        display: flex; gap: 16px;
+    }
+    .view-pane { flex: 1; min-width: 0; width: auto; padding: 0; }
+    .nav-bar { display: none; }
+
+    .header-montants .montant-chip { padding: 12px 18px; }
+    .chip-val { font-size: 22px; }
+    .chip-val.val-libre { font-size: 26px; }
+}
+
+/* =============================================
+   MOBILE < 768px
+   ============================================= */
+@media (max-width: 767px) {
+    .main-title { font-size: 1.5rem; letter-spacing: 2px; }
+    .title-chip { padding: 10px 14px; gap: 10px; }
+    .title-chip-euro { font-size: 2.8rem; }
+    .bubble-actions { padding: 6px 8px; gap: 5px; }
+    .icon-btn {
+        width: auto; height: auto; min-width: 58px;
+        padding: 9px 8px 7px;
+        border-radius: 12px;
+        gap: 3px;
+    }
+    .icon-btn i { font-size: 18px; }
+    .icon-tip { display: block; font-size: 7px; white-space: nowrap; }
+    .icon-btn::before { border-radius: 12px 12px 0 0; }
+    .accueil-actions-row { flex-wrap: wrap; row-gap: 10px; gap: 10px; }
+
+
+    .chip-val { font-size: 16px; }
+    .chip-val.val-libre { font-size: 18px; }
+    .chip-label { font-size: 8px; }
+    .montant-chip { padding: 8px 6px; border-radius: 16px; min-height: 52px; justify-content: space-between; }
+    .header-montants { align-items: stretch; }
+
+    .nav-btn { font-size: 10px; letter-spacing: 0.5px; max-width: none; padding: 0 2px; }
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
+
+
+/* =============================================
+   CLAVIER NUMÉRIQUE (fenêtre pour chaque saisie de montant)
+   ============================================= */
+#numpadOverlay {
+    display: none; position: fixed; inset: 0; z-index: 20000;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    align-items: flex-end; justify-content: center;
+}
+#numpadOverlay.open { display: flex; }
+/* Champs à clavier : zoom piloté par la fenêtre, pas par le focus */
+input[data-np-ready]:focus { transform: none; box-shadow: none; z-index: auto; }
+input[data-np-ready].np-active {
+    transform: scale(1.18); position: relative; z-index: 5;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.45), 0 0 0 2px var(--primary-bright);
+    border-color: var(--primary);
+}
+#numpadWin {
+    position: relative; overflow: hidden; width: 100%; max-width: 420px;
+    border-radius: 26px 26px 0 0; padding: 18px 16px calc(16px + env(safe-area-inset-bottom));
+    border: 1px solid rgba(255,255,255,0.22); border-bottom: none;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.55), 0 0 30px var(--accent-glow);
+    color: #fff; animation: npUp 0.28s cubic-bezier(.34,1.4,.64,1);
+}
+@media (min-width: 520px) {
+    #numpadOverlay { align-items: center; }
+    #numpadWin { border-radius: 26px; border-bottom: 1px solid rgba(255,255,255,0.22); }
+}
+@keyframes npUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+#numpadDeco { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+#numpadDeco span {
+    position: absolute; color: #fff; line-height: 1;
+    animation: npFloat ease-in-out infinite alternate; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+@keyframes npFloat { from { transform: translateY(0) rotate(var(--r)); } to { transform: translateY(-10px) rotate(calc(var(--r) + 12deg)); } }
+@media (prefers-reduced-motion: reduce) { #numpadDeco span, #numpadWin { animation: none; } }
+#numpadWin > *:not(#numpadDeco) { position: relative; z-index: 1; }
+.np-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.np-head-icon {
+    flex: 0 0 52px; height: 52px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.28);
+    font-size: 30px; box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+}
+.np-head-text { flex: 1; min-width: 0; text-align: left; }
+.np-kind { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; }
+.np-cat { font-family: 'Bangers', cursive; font-size: 24px; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.np-lib { font-size: 14px; opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.np-close { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 26px; cursor: pointer; padding: 4px; line-height: 1; }
+.np-display {
+    font-family: 'Bangers', cursive; font-size: 46px; letter-spacing: 1px; text-align: right;
+    padding: 8px 16px; margin-bottom: 14px; border-radius: 16px;
+    background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.2);
+    min-height: 72px; overflow: hidden; white-space: nowrap;
+}
+.np-display.empty { opacity: 0.45; }
+.np-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.np-key {
+    height: 58px; border-radius: 16px; cursor: pointer; color: #fff;
+    border: 1px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.13);
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    font-family: 'Bangers', cursive; font-size: 28px; letter-spacing: 1px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.25); transition: transform 0.08s, background 0.15s;
+    -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.np-key:active, .np-key.pressed { transform: translateY(2px) scale(0.97); background: rgba(255,255,255,0.28); box-shadow: 0 1px 0 rgba(0,0,0,0.25); }
+.np-key.np-fn { font-size: 22px; background: rgba(0,0,0,0.25); }
+.np-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 9px; margin-top: 9px; }
+.np-key.np-ok { background: var(--primary-bright, var(--accent)); border-color: rgba(255,255,255,0.4); font-size: 24px; }
+.np-key.np-cancel { background: rgba(0,0,0,0.3); font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+
+/* =============================================
+   CARTES RÉSUMÉ DE CATÉGORIES + PAGE DÉTAIL
+   ============================================= */
+#catsGrid, #varsGrid, #tributsList { display: none; }
+.sum-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-bottom: 10px; }
+.sum-label { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.55); margin: 4px 2px 7px; }
+.sum-card {
+    position: relative; overflow: hidden; text-align: left; cursor: pointer; color: #fff;
+    border-radius: 18px; padding: 11px 12px 10px; min-height: 92px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.20) 0%, var(--cat-bg) 60%, rgba(255,255,255,0.08) 100%);
+    border: 1px solid var(--card-border-white);
+    backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.3);
+    display: flex; flex-direction: column; gap: 3px; font-family: 'Patrick Hand', cursive;
+    transition: transform 0.12s ease, box-shadow 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.sum-card:active { transform: scale(0.96); }
+.sum-card.green { border-color: rgba(85,255,136,0.35); }
+.sum-emoji { position: absolute; right: -6px; bottom: -10px; font-size: 52px; opacity: 0.35; transform: rotate(-12deg); pointer-events: none; }
+.sum-name { font-family: 'Bangers', cursive; font-size: 18px; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 22px; }
+.sum-amt { font-family: 'Bangers', cursive; font-size: 24px; letter-spacing: 0.5px; }
+.sum-sub { font-size: 12px; color: rgba(255,255,255,0.65); }
+.sum-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.15); overflow: hidden; margin-top: 3px; }
+.sum-bar > div { height: 100%; border-radius: 3px; background: #55ff88; }
+.sum-arrow { position: absolute; top: 10px; right: 10px; font-size: 14px; opacity: 0.6; }
+.sum-empty { grid-column: 1 / -1; font-size: 13px; color: rgba(255,255,255,0.5); text-align: center; padding: 8px; }
+
+#catDetail {
+    display: none; position: fixed; inset: 0; z-index: 15000; overflow-y: auto;
+    padding: 16px 14px calc(30px + env(safe-area-inset-bottom));
+    animation: npUp 0.25s ease;
+}
+#catDetail.open { display: block; }
+.cd-head { display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; position: relative; z-index: 1; }
+.cd-back {
+    flex: 0 0 44px; height: 44px; border-radius: 14px; cursor: pointer; color: #fff; font-size: 22px;
+    background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.3);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.cd-emoji { font-size: 34px; }
+.cd-title { flex: 1; min-width: 0; }
+.cd-kind { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; color: #fff; }
+.cd-name { font-family: 'Bangers', cursive; font-size: 28px; letter-spacing: 1px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#cdDeco { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+#cdDeco span { position: absolute; line-height: 1; }
+#cdBody { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; }
+#cdBody .cat-card { background: rgba(0,0,0,0.28); }
+
+/* =============================================
+   SAISIES — STYLE ERGONOMIQUE (verre + accent du thème)
+   ============================================= */
+input[type="text"], input[type="number"] {
+    height: 44px; border-radius: 12px; padding: 0 14px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.16);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    font-size: 1.05rem;
+}
+input::placeholder { color: rgba(255,255,255,0.45); }
+input[type="text"]:focus { border-color: var(--accent); }
+.input-plus-group { gap: 8px; }
+/* Ligne d'ajout avec montant : libellé en pleine largeur, puis montant + bouton */
+.input-plus-group:has(input[type="number"]) { flex-wrap: wrap; }
+.input-plus-group:has(input[type="number"]) input[type="text"] { flex: 1 1 100%; }
+.input-plus-group:has(input[type="number"]) input[type="number"] { flex: 1 1 0; min-width: 0; max-width: none; }
+.btn-plus {
+    flex: 0 0 48px; width: 48px; height: 44px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: linear-gradient(135deg, var(--primary-bright), var(--accent-dim));
+    box-shadow: 0 4px 14px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.35);
+    transition: transform 0.1s ease, filter 0.15s ease;
+}
+.btn-plus:hover { filter: brightness(1.1); }
+.btn-plus:active { transform: scale(0.94); }
+.btn-plus span { font-family: system-ui, sans-serif; font-size: 26px; font-weight: 300; line-height: 1; }
+.btn-plus-video { display: none; }
+.btn-plus-green { background: linear-gradient(135deg, hsl(145,70%,45%), hsl(160,60%,28%)); box-shadow: 0 4px 14px rgba(85,255,136,0.25), inset 0 1px 0 rgba(255,255,255,0.35); border-color: rgba(85,255,136,0.5); }
+.input-plus-group:has(input[type="number"]) .btn-plus { flex: 0 0 auto; width: auto; padding: 0 16px; }
+.input-plus-group:has(input[type="number"]) .btn-plus span::after { content: 'Ajouter'; font-family: 'Bangers', cursive; font-size: 17px; letter-spacing: 1px; margin-left: 6px; vertical-align: 3px; }
+
+/* Dépenses CB */
+.cb-lib { margin-bottom: 8px !important; }
+.cb-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 8px; }
+.cb-row:last-child { margin-bottom: 0; }
+.cb-row input[type="number"] { flex: 1 1 0; min-width: 0; margin-bottom: 0; }
+.cb-select {
+    flex: 1 1 0; min-width: 0; height: 44px; border-radius: 12px; padding: 0 30px 0 12px;
+    background: rgba(255,255,255,0.08) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+    -webkit-appearance: none; appearance: none;
+    border: 1px solid rgba(255,255,255,0.16); color: #fff;
+    font-family: 'Patrick Hand', cursive; font-size: 1.05rem; cursor: pointer; outline: none;
+}
+.cb-select:focus { border-color: var(--accent); }
+.cb-select option { background: #1b1b2b; color: #fff; }
+.seg {
+    flex: 1 1 auto; display: flex; padding: 3px; gap: 3px; min-width: 0;
+    border-radius: 12px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.12);
+}
+.seg label { flex: 1; position: relative; cursor: pointer; min-width: 0; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span {
+    display: flex; align-items: center; justify-content: center; gap: 3px; height: 36px; padding: 0 6px;
+    border-radius: 9px; font-size: 14px; color: rgba(255,255,255,0.65); white-space: nowrap;
+}
+.seg small { font-size: 11px; color: #ffaa44; }
+.seg input:checked + span { background: var(--nav-active-bg); color: #fff; box-shadow: inset 0 0 0 1px var(--nav-active-border); }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); }
+.btn-add {
+    flex: 0 0 auto; height: 44px; padding: 0 16px; border-radius: 12px; cursor: pointer; color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: linear-gradient(135deg, var(--primary-bright), var(--accent-dim));
+    box-shadow: 0 4px 14px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.35);
+    font-family: 'Bangers', cursive; font-size: 17px; letter-spacing: 1px;
+    display: flex; align-items: center; gap: 6px; transition: transform 0.1s;
+}
+.btn-add:active { transform: scale(0.95); }
+.btn-add-plus { font-family: system-ui, sans-serif; font-size: 22px; font-weight: 300; line-height: 1; }
+@media (max-width: 360px) { .btn-add { padding: 0 12px; } .seg span { font-size: 13px; } }
+.cb-row:last-child { flex-wrap: wrap; }
+.cb-row:last-child .seg { flex: 1 1 100%; }
+.cb-row:last-child .btn-add { flex: 1 1 100%; justify-content: center; }
+
+/* =============================================
+   HISTORIQUE — nouvelle DA (3 valeurs)
+   ============================================= */
+.hs-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+.hs-grid .hs-chip:last-child { grid-column: 1 / -1; flex-direction: row; align-items: baseline; flex-wrap: wrap; column-gap: 10px; }
+.hs-grid .hs-chip:last-child .hs-num { font-size: 30px; order: 3; flex: 1 1 100%; }
+.hs-grid .hs-chip:last-child .hs-emoji { font-size: 52px; }
+.hs-chip {
+    position: relative; overflow: hidden; border-radius: 18px; padding: 12px 10px 10px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.18) 0%, var(--cat-bg) 60%, rgba(255,255,255,0.06) 100%);
+    border: 1px solid var(--card-border-white);
+    backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.3);
+    display: flex; flex-direction: column; gap: 2px; min-width: 0;
+}
+.hs-emoji { position: absolute; right: -4px; bottom: -8px; font-size: 38px; opacity: 0.3; transform: rotate(-12deg); pointer-events: none; }
+.hs-lbl { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.65); }
+.hs-num { font-family: 'Bangers', cursive; font-size: 24px; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hs-sub { font-size: 11px; color: rgba(255,255,255,0.5); }
+.c-rev { color: #55ff88; } .c-cha { color: #ff8a65; } .c-sol { color: #7dcfff; } .c-neg, .hs-num.neg { color: #ff5a5a; }
+
+.hm-card {
+    border-radius: 18px; margin-bottom: 9px; padding: 12px 14px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.12) 0%, var(--cat-bg) 70%);
+    border: 1px solid var(--cat-border);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.hm-closed { border-color: rgba(85,255,136,0.3); }
+.hm-live { border-color: var(--nav-active-border); box-shadow: 0 4px 18px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.25); }
+.hm-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.hm-month { font-family: 'Bangers', cursive; font-size: 20px; letter-spacing: 1px; color: #fff; flex: 1; }
+.hm-tag { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 4px 8px; border-radius: 20px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.55); }
+.tag-closed { color: #55ff88; background: rgba(85,255,136,0.12); }
+.tag-live { color: #fff; background: var(--nav-active-bg); }
+.hm-del { background: none; border: none; color: rgba(255,80,50,0.65); font-size: 20px; cursor: pointer; padding: 0 2px; line-height: 1; }
+.hm-vals { display: grid; grid-template-columns: 1fr 1fr 1.15fr; gap: 10px; align-items: end; container-type: inline-size; }
+@container (max-width: 300px) { .hm-vals .hm-lbl { white-space: normal; } .hm-vals .hm-num { font-size: 17px; } .hm-vals .hm-solde .hm-num { font-size: 19px; } }
+.hm-val { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hm-lbl { font-family: 'Cinzel', serif; font-size: 8.5px; letter-spacing: 0.8px; text-transform: uppercase; color: rgba(255,255,255,0.55); white-space: nowrap; }
+.hm-num { font-family: 'Bangers', cursive; font-size: 20px; letter-spacing: 0.5px; white-space: nowrap; }
+.hm-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.1); overflow: hidden; }
+.hm-bar > div { height: 100%; border-radius: 2px; }
+.hm-solde { text-align: right; padding-left: 10px; border-left: 1px solid rgba(255,255,255,0.12); }
+.hm-solde .hm-num { font-size: 23px; }
+.hm-empty { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; opacity: 0.55; box-shadow: none; background: var(--cat-bg); border-style: dashed; }
+.hm-empty .hm-month { font-size: 16px; }
+
+/* =============================================
+   BOUTON « + » DE NOUVELLE CATÉGORIE + FENÊTRE
+   ============================================= */
+.cat-card:has(#newFixName), .cat-card:has(#newTribName), .cat-card:has(#newVarName) { display: none; }
+.pane-header .section-title + .add-cat-btn { margin-left: 10px; margin-right: auto; }
+.add-cat-btn {
+    width: 44px; height: 44px; flex: 0 0 44px; border-radius: 50%; cursor: pointer; color: #fff;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: linear-gradient(135deg, var(--primary-bright), var(--accent-dim));
+    box-shadow: 0 4px 16px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.4);
+    font-family: system-ui, sans-serif; font-size: 30px; font-weight: 300; line-height: 1;
+    display: flex; align-items: center; justify-content: center; padding: 0 0 3px;
+    transition: transform 0.12s ease, filter 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.add-cat-btn:hover { filter: brightness(1.1); }
+.add-cat-btn:active { transform: scale(0.9); }
+.add-cat-btn.green { background: linear-gradient(135deg, hsl(145,70%,45%), hsl(160,60%,28%)); box-shadow: 0 4px 16px rgba(85,255,136,0.3), inset 0 1px 0 rgba(255,255,255,0.4); border-color: rgba(85,255,136,0.5); }
+
+#newCatOverlay {
+    display: none; position: fixed; inset: 0; z-index: 18000;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    align-items: center; justify-content: center; padding: 16px;
+}
+#newCatOverlay.open { display: flex; }
+#newCatWin {
+    position: relative; overflow: hidden; width: 100%; max-width: 380px; border-radius: 26px; padding: 20px 18px 18px;
+    border: 1px solid rgba(255,255,255,0.25); color: #fff;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.55), 0 0 30px var(--accent-glow);
+    animation: npUp 0.25s cubic-bezier(.34,1.4,.64,1);
+}
+#ncDeco { position: absolute; inset: 0; pointer-events: none; }
+#ncDeco span { position: absolute; line-height: 1; }
+#newCatWin > *:not(#ncDeco) { position: relative; }
+.nc-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.nc-emoji {
+    flex: 0 0 56px; height: 56px; border-radius: 18px; font-size: 32px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.3);
+    transition: transform 0.2s;
+}
+.nc-emoji.pop { transform: scale(1.15) rotate(-6deg); }
+.nc-kind { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.75; }
+.nc-title { font-family: 'Bangers', cursive; font-size: 26px; letter-spacing: 1px; }
+#newCatWin input[type="text"] { height: 50px; font-size: 1.15rem; margin-bottom: 10px; background: rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.25); }
+#newCatWin input:focus { transform: none; box-shadow: 0 0 0 2px rgba(255,255,255,0.5); }
+.nc-sugg { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.nc-chip {
+    border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.12); color: #fff; cursor: pointer;
+    border-radius: 20px; padding: 6px 11px; font-family: 'Patrick Hand', cursive; font-size: 14px;
+}
+.nc-chip:active { transform: scale(0.95); }
+.nc-err { min-height: 18px; font-size: 13px; color: #ffb4a8; margin: -4px 2px 8px; }
+.nc-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 9px; }
+.nc-actions button { height: 50px; border-radius: 14px; cursor: pointer; color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+.nc-cancel { background: rgba(0,0,0,0.3); font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+.nc-ok { background: rgba(255,255,255,0.92); color: #1a1a2e !important; font-family: 'Bangers', cursive; font-size: 20px; letter-spacing: 1px; box-shadow: 0 4px 14px rgba(0,0,0,0.3); }
+#cbOverlay {
+    display: none; position: fixed; inset: 0; z-index: 18000;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    align-items: center; justify-content: center; padding: 16px;
+}
+#cbOverlay.open { display: flex; }
+#cbWin {
+    position: relative; overflow: hidden; width: 100%; max-width: 400px; border-radius: 26px; padding: 18px;
+    border: 1px solid rgba(255,255,255,0.25); color: #fff;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.55), 0 0 30px var(--accent-glow);
+    animation: npUp 0.25s cubic-bezier(.34,1.4,.64,1);
+}
+#cbDeco { position: absolute; inset: 0; pointer-events: none; }
+#cbDeco span { position: absolute; line-height: 1; }
+#cbWin > *:not(#cbDeco) { position: relative; }
+#cbWin .cb-form { background: none; border: none; padding: 0; margin: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+#cbWin input[type="text"], #cbWin input[type="number"], #cbWin .cb-select { height: 50px; background-color: rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.25); }
+#cbWin input:focus { transform: none; }
+#cbWin .btn-add { height: 52px; font-size: 20px; background: rgba(255,255,255,0.92); color: #1a1a2e; }
+
+/* Journal : bouton en forme de carte bancaire */
+.cb-btn {
+    position: relative; width: 74px; height: 46px; flex: 0 0 74px; margin-left: 10px; margin-right: auto;
+    border-radius: 8px; cursor: pointer; overflow: hidden; color: #fff; padding: 0;
+    border: 1px solid rgba(255,255,255,0.45);
+    background:
+        radial-gradient(circle at 85% 15%, rgba(255,255,255,0.35) 0%, transparent 45%),
+        linear-gradient(135deg, var(--primary-bright) 0%, var(--accent-dim) 60%, hsl(calc(var(--hue) + 40), 60%, 30%) 100%);
+    box-shadow: 0 5px 16px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.45);
+    transition: transform 0.12s ease, filter 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.cb-btn:hover { filter: brightness(1.1); transform: rotate(-3deg) scale(1.04); }
+.cb-btn:active { transform: scale(0.92); }
+.cb-chip {
+    position: absolute; left: 8px; top: 12px; width: 14px; height: 11px; border-radius: 3px;
+    background: linear-gradient(135deg, #f7e08a, #c9a43c); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+}
+.cb-label { position: absolute; right: 7px; top: 4px; font-family: 'Bangers', cursive; font-size: 13px; letter-spacing: 1px; opacity: 0.9; }
+.cb-dots { position: absolute; left: 8px; bottom: 4px; font-size: 7px; letter-spacing: 1px; opacity: 0.75; font-family: monospace; }
+.cb-plus {
+    position: absolute; right: 6px; bottom: 3px; width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(255,255,255,0.92); color: #1a1a2e; font-family: system-ui, sans-serif; font-size: 20px; font-weight: 600;
+    line-height: 21px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.sum-head { display: flex; align-items: center; justify-content: space-between; margin: 2px 2px 8px; }
+.add-cat-btn.add-cat-sm { width: 34px; height: 34px; flex: 0 0 34px; font-size: 24px; padding-bottom: 2px; }
+
+/* PC : pas de bouton Accueil dans les colonnes (l'accueil est toujours visible) */
+@media (min-width: 768px) { .pane-header .bg-picker-btn[onclick="nav(0)"] { display: none; } }
+
+/* Accueil : 3 cartes résumé du mois */
+.accueil-mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: -14px 0 20px; }
+.mini-card {
+    position: relative; overflow: hidden; cursor: pointer; min-width: 0;
+    border-radius: 18px; padding: 10px 8px 9px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.07) 60%, rgba(255,255,255,0.10) 100%);
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.3);
+    display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center;
+    transition: transform 0.12s ease;
+}
+.mini-card:active { transform: scale(0.95); }
+.mini-emoji { position: absolute; right: -4px; bottom: -8px; font-size: 34px; opacity: 0.28; transform: rotate(-12deg); pointer-events: none; }
+.mini-val { font-family: 'Bangers', cursive; font-size: clamp(17px, 5vw, 30px); letter-spacing: 0.5px; white-space: nowrap; }
+.mini-sub { font-size: 10px; color: rgba(255,255,255,0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+@media (min-width: 768px) { .accueil-mini { gap: 16px; margin: 0 0 20px; } .mini-card { padding: 14px 10px; } .mini-sub { font-size: 12px; } .accueil-mini .chip-label { font-size: 13px; } }
+    </style>
+</head>
+<body>
+
+<div id="ritualLoader">
+    <div class="spinner"></div>
+    <div class="ritual-text">Traitement...</div>
+</div>
+
+<div id="bubbles-bg">
+    <div id="bg-base"></div>
+    <div id="bg-radials"></div>
+</div>
+
+<div class="app-container">
+
+    <!-- TITRE dans sa chip animée -->
+    <div class="title-chip">
+        <span class="title-chip-euro">€</span>
+        <h1 class="main-title">MON BUDGET ZEN</h1>
+        <span class="title-chip-euro">€</span>
+    </div>
+
+    <!-- PAGE ACCUEIL — écran à part entière -->
+    <div id="accueilPage">
+
+        <div class="accueil-actions-row">
+            <div class="icon-btn" onclick="toggleBgPanel()" title="Thème (style + couleur)" aria-label="Thème">
+                <i class="ti ti-palette" aria-hidden="true"></i>
+                <span class="icon-tip">Thème</span>
+            </div>
+            <button class="icon-btn btn-reset" onclick="razTotal()" title="Remise à zéro" aria-label="Remise à zéro">
+                <i class="ti ti-trash" aria-hidden="true"></i>
+                <span class="icon-tip">Reset</span>
+            </button>
+            <button class="icon-btn btn-save" onclick="openSauvegardeModal()" title="Sauvegarde (export / import / QR)" aria-label="Sauvegarde">
+                <i class="ti ti-device-floppy" aria-hidden="true"></i>
+                <span class="icon-tip">Sauvegarde</span>
+            </button>
+            <button class="icon-btn btn-fin-mois" onclick="grandRituel()" title="Fin de mois" aria-label="Fin de mois">
+                <i class="ti ti-calendar-event" aria-hidden="true"></i>
+                <span class="icon-tip">Fin mois</span>
+            </button>
+        </div>
+
+        <!-- Bulles réparties équitablement -->
+        <div class="header-montants accueil-bulles">
+            <div class="montant-chip chip-solde-initial" onclick="editSolde()" style="cursor:pointer">
+                <span class="chip-label">Solde Initial</span>
+                <span id="sSolde" class="chip-val">0.00€</span>
+            </div>
+            <div class="montant-chip chip-encours" onclick="editEncoursPrec()" style="cursor:pointer">
+                <span class="chip-label">Encours CB mois dernier</span>
+                <span id="sEncPrec" class="chip-val val-encours">0.00€</span>
+            </div>
+            <div class="montant-chip chip-libre chip-wide">
+                <span class="chip-label">Solde du Compte</span>
+                <span id="sReel" class="chip-val val-libre">0€</span>
+            </div>
+            <div class="montant-chip">
+                <span class="chip-label">Solde Prévisionnel</span>
+                <span id="sPrev" class="chip-val val-oracle">0€</span>
+            </div>
+            <div class="montant-chip">
+                <span class="chip-label">Épargne</span>
+                <span id="sEpargne" class="chip-val val-epargne">0.00€</span>
+            </div>
+        </div>
+
+        <!-- RÉSUMÉ DU MOIS : revenus / charges / balance -->
+        <div class="accueil-mini">
+            <div class="mini-card" onclick="nav(1)">
+                <span class="mini-emoji">💶</span>
+                <span class="chip-label">Revenus</span>
+                <span id="mRevenus" class="mini-val" style="color:#55ff88">0€</span>
+                <span class="mini-sub" id="mRevenusSub"></span>
+            </div>
+            <div class="mini-card" onclick="nav(2)">
+                <span class="mini-emoji">🧾</span>
+                <span class="chip-label">Budget</span>
+                <span id="mCharges" class="mini-val" style="color:#ff8a65">0€</span>
+                <span class="mini-sub" id="mChargesSub" style="white-space:normal;line-height:1.2"></span>
+            </div>
+            <div class="mini-card" onclick="nav(3)">
+                <span class="mini-emoji">⚖️</span>
+                <span class="chip-label">Balance</span>
+                <span id="mBalance" class="mini-val">0€</span>
+                <span class="mini-sub">revenus − budget</span>
+            </div>
+        </div>
+
+        <!-- JAUGE -->
+        <div class="jauge-wrapper">
+            <div id="bloodFill"></div>
+        </div>
+    </div>
+
+    <!-- COLONNES : Fixes | Journal | Variables -->
+    <div id="swipe-wrapper">
+        <div id="swipe-track">
+
+            <div class="view-pane">
+                <div class="pane-header">
+                    <div class="section-title">FIXES — <span id="fixesTotal">0€</span></div>
+                    <button class="add-cat-btn" onclick="openNewCat('fix')" title="Nouvelle catégorie" aria-label="Nouvelle catégorie de charges fixes">+</button>
+                    <div class="bg-picker-btn" onclick="nav(0)" title="Accueil" aria-label="Accueil"><i class="ti ti-home"></i></div>
+                </div>
+                <div class="cat-card" style="margin-bottom:10px;">
+                    <div class="cat-header" style="margin-bottom:6px;">Nouvelle catégorie</div>
+                    <div class="input-plus-group">
+                        <input type="text" id="newFixName" placeholder="Nom de la catégorie...">
+                        <button class="btn-plus" onclick="addFixCat()">
+                            <video src="plus.mp4" autoplay loop muted playsinline class="btn-plus-video"></video>
+                            <span>+</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="sumFix" class="sum-grid"></div>
+                <div id="catsGrid"></div>
+
+                <div class="pane-header" style="margin-top:14px;">
+                    <div class="section-title" style="color:#88ffbb;border-color:rgba(85,255,136,0.3);background:rgba(85,255,136,0.08);">REVENUS — <span id="tributsTotal" style="color:#55ff88;">+0€</span></div>
+                    <button class="add-cat-btn green" onclick="openNewCat('trib')" title="Nouvelle catégorie" aria-label="Nouvelle catégorie de revenus">+</button>
+                </div>
+                <div class="cat-card" style="border-color:rgba(85,255,136,0.15);margin-bottom:10px;">
+                    <div class="cat-header" style="margin-bottom:6px;">Nouvelle catégorie</div>
+                    <div class="input-plus-group">
+                        <input type="text" id="newTribName" placeholder="Ex: Salaire, Freelance...">
+                        <button class="btn-plus btn-plus-green" onclick="addTribCat()">
+                            <video src="revenus.mp4" autoplay loop muted playsinline class="btn-plus-video"></video>
+                            <span>+</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="sumTrib" class="sum-grid"></div>
+                <div id="tributsList"></div>
+            </div>
+
+            <div class="view-pane">
+                <div class="pane-header">
+                    <div class="section-title">DÉPENSES — <span id="varsTotal">0€</span></div>
+                    <button class="cb-btn" onclick="openCbWin()" title="Saisir une dépense CB" aria-label="Nouvelle dépense CB">
+                        <span class="cb-chip"></span><span class="cb-plus">+</span><span class="cb-label">CB</span><span class="cb-dots">•••• ••••</span>
+                    </button>
+                    <div class="bg-picker-btn" onclick="nav(0)" title="Accueil" aria-label="Accueil"><i class="ti ti-home"></i></div>
+                </div>
+                <div class="cat-card">
+                    <div class="cat-header">DÉPENSES CB</div>
+                    <input type="text" id="txLib" class="cb-lib" placeholder="Libellé (ex : Leclerc)">
+                    <div class="cb-row">
+                        <input type="number" id="txAmt" placeholder="Montant €">
+                        <select id="txCat" class="cb-select" aria-label="Catégorie">
+                            <option value="">Catégorie</option>
+                        </select>
+                    </div>
+                    <div class="cb-row">
+                        <div class="seg" role="radiogroup" aria-label="Type de dépense">
+                            <label><input type="radio" name="txType" value="immediat" checked><span>Immédiat</span></label>
+                            <label><input type="radio" name="txType" value="differe"><span>Différé <small>(<b id="sEncours">0€</b>)</small></span></label>
+                        </div>
+                        <button class="btn-add" onclick="submitTx()"><span class="btn-add-plus">+</span>Ajouter</button>
+                    </div>
+                </div>
+                <div class="sum-head">
+                    <div class="sum-label" style="margin:0;">Catégories</div>
+                    <button class="add-cat-btn add-cat-sm" onclick="openNewCat('var')" title="Nouvelle catégorie" aria-label="Nouvelle catégorie">+</button>
+                </div>
+                <div id="sumJournal" class="sum-grid"></div>
+                <div style="display:none">
+                    <div class="cat-card"><input type="text" id="newVarName"><button onclick="addVarCat()"></button></div>
+                </div>
+                <div id="varsGrid"></div>
+                <div id="txList"></div>
+            </div>
+
+            <div class="view-pane">
+                <div class="pane-header">
+                    <div class="section-title">HISTORIQUE</div>
+                    <div class="bg-picker-btn" onclick="nav(0)" title="Accueil" aria-label="Accueil"><i class="ti ti-home"></i></div>
+                </div>
+                <div id="histGrid"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <nav class="nav-bar">
+        <button class="nav-btn" onclick="nav(0)">ACCUEIL</button>
+        <button class="nav-btn" onclick="nav(1)">FIXES</button>
+        <button class="nav-btn active" onclick="nav(2)">DÉPENSES</button>
+        <button class="nav-btn" onclick="nav(3)">HISTORIQUE</button>
+    </nav>
+
+</div>
+
+<!-- MODAL SOLDE -->
+<div id="butinModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-title">SOLDE INITIAL</div>
+        <input id="butinInput" type="number">
+        <button class="modal-btn" onclick="confirmButin()">Confirmer</button>
+        <button class="modal-cancel" onclick="document.getElementById('butinModal').style.display='none'">Annuler</button>
+    </div>
+</div>
+
+<!-- MODAL SAUVEGARDE (export + import + QR) -->
+<div id="sauvegardeModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:340px;">
+        <div class="modal-title">SAUVEGARDE</div>
+
+        <div style="text-align:left;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-bottom:6px;">Exporter</div>
+        <textarea id="saveCodeArea" readonly style="width:100%;height:70px;background:#000;color:#fff;border:1px solid var(--primary);border-radius:8px;padding:7px;margin-bottom:8px;resize:none;"></textarea>
+        <div id="qrCodeContainer" style="display:none;background:#fff;padding:12px;border-radius:10px;margin:0 auto 10px;width:fit-content;"></div>
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <button class="modal-btn" onclick="copyCode()">Copier</button>
+            <button class="modal-btn" onclick="toggleQrDisplay()">QR Code</button>
+        </div>
+
+        <div style="text-align:left;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-bottom:6px;">Importer</div>
+        <textarea id="importCodeArea" placeholder="Colle ton code ici..." style="width:100%;height:70px;background:#000;color:#fff;border:1px solid var(--primary);border-radius:8px;padding:7px;margin-bottom:8px;resize:none;"></textarea>
+        <div id="qrScanArea" style="display:none;margin-bottom:8px;">
+            <video id="qrVideo" playsinline style="width:100%;border-radius:10px;background:#000;"></video>
+            <canvas id="qrCanvas" style="display:none;"></canvas>
+            <div id="qrScanStatus" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px;">Vise le QR code avec la caméra...</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <button class="modal-btn" onclick="confirmImport()">Importer</button>
+            <button class="modal-btn" onclick="toggleQrScan()">Scanner QR</button>
+        </div>
+
+        <button class="modal-cancel" onclick="closeSauvegardeModal()">Fermer</button>
+    </div>
+</div>
+
+<script>
+
+/* =============================================
+   THÈME DYNAMIQUE
+   Extrait la teinte (hue) dominante du fond et
+   régénère toutes les variables CSS en cascade.
+   Appeler applyTheme(hue, sat, bgHex) pour changer.
+   ============================================= */
+function applyTheme(hue, sat, bgHex) {
+    hue = ((hue % 360) + 360) % 360;
+    sat = sat || 60;
+    bgHex = bgHex || '#2d2b5e';
+    const r = document.documentElement;
+
+    r.style.setProperty('--hue',  hue);
+    r.style.setProperty('--sat',  sat + '%');
+    r.style.setProperty('--bg',   bgHex);
+    r.style.setProperty('--accent',              `hsl(${hue},80%,65%)`);
+    r.style.setProperty('--accent-dim',          `hsl(${hue},60%,45%)`);
+    r.style.setProperty('--accent-glow',         `hsla(${hue},80%,60%,0.35)`);
+    r.style.setProperty('--card-bg',             `hsla(${hue},40%,100%,0.07)`);
+    r.style.setProperty('--card-border',         `hsla(${hue},60%,100%,0.16)`);
+    r.style.setProperty('--card-bg-white',       `hsla(${hue},30%,100%,0.13)`);
+    r.style.setProperty('--card-border-white',   `hsla(${hue},40%,100%,0.30)`);
+    r.style.setProperty('--section-bg',          `hsla(${hue},50%,40%,0.18)`);
+    r.style.setProperty('--section-border',      `hsla(${hue},50%,50%,0.25)`);
+    r.style.setProperty('--section-color',       `hsl(${hue},40%,78%)`);
+    r.style.setProperty('--cat-bg',              `hsla(${hue},40%,50%,0.06)`);
+    r.style.setProperty('--cat-border',          `hsla(${hue},40%,50%,0.15)`);
+    r.style.setProperty('--nav-active-bg',       `hsla(${hue},70%,55%,0.30)`);
+    r.style.setProperty('--nav-active-border',   `hsl(${hue},70%,60%)`);
+    r.style.setProperty('--chip-oracle',         `hsl(${(hue+30)%360},70%,75%)`);
+    r.style.setProperty('--chip-epargne',        `hsl(${(hue+320)%360},70%,80%)`);
+    r.style.setProperty('--primary',             `hsl(${hue},80%,45%)`);
+    r.style.setProperty('--primary-bright',      `hsl(${(hue+10)%360},90%,58%)`);
+    r.style.setProperty('--input-bg',            `hsla(${hue},30%,10%,0.80)`);
+
+    // Fond de base : couleur solide
+    const base = document.getElementById('bg-base');
+    if (base) base.style.background = bgHex;
+
+    // Radial-gradients : mis à jour directement en JS
+    const h1 = hue, h2 = (hue+40)%360, h3 = (hue+330)%360, h4 = (hue+80)%360, h5 = (hue+300)%360;
+    const radials = document.getElementById('bg-radials');
+    if (radials) radials.style.background = `
+        radial-gradient(circle at 20% 20%,  hsla(${h1},80%,60%,0.40) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%,  hsla(${h2},70%,55%,0.35) 0%, transparent 50%),
+        radial-gradient(circle at 60% 30%,  hsla(${h3},70%,55%,0.28) 0%, transparent 45%),
+        radial-gradient(circle at 30% 70%,  hsla(${h4},65%,50%,0.25) 0%, transparent 45%),
+        radial-gradient(circle at 50% 100%, hsla(${h5},70%,45%,0.22) 0%, transparent 40%)
+    `;
+
+    // Régénérer le fond avec la nouvelle teinte
+    if (typeof startBg === 'function') startBg(currentBgMode || 'bubbles', hue);
+    else regenerateBubbles(hue);
+}
+
+function hexToHsl(hex) {
+    let r = parseInt(hex.slice(1,3),16)/255;
+    let g = parseInt(hex.slice(3,5),16)/255;
+    let b = parseInt(hex.slice(5,7),16)/255;
+    const max = Math.max(r,g,b), min = Math.min(r,g,b);
+    let h, s, l = (max+min)/2;
+    if (max === min) { h = s = 0; }
+    else {
+        const d = max - min;
+        s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+        switch(max) {
+            case r: h = ((g-b)/d + (g<b?6:0))/6; break;
+            case g: h = ((b-r)/d + 2)/6; break;
+            case b: h = ((r-g)/d + 4)/6; break;
+        }
+    }
+    return [Math.round(h*360), Math.round(s*100), Math.round(l*100)];
+}
+
+/* =============================================
+   SYSTÈME D'ARRIÈRE-PLAN
+   ============================================= */
+const BG_MODES = [
+    { id: 'bubbles',    label: 'Bulles',       icon: 'ti-circles' },
+    { id: 'gradient',   label: 'Dégradé',      icon: 'ti-color-swatch' },
+    { id: 'particles',  label: 'Particules',   icon: 'ti-dots' },
+    { id: 'waves',      label: 'Vagues',       icon: 'ti-wave-sine' },
+    { id: 'stars',      label: 'Étoiles',      icon: 'ti-stars' },
+    { id: 'grid',       label: 'Grille',       icon: 'ti-grid-dots' },
+    { id: 'rain',       label: 'Pluie',        icon: 'ti-line' },
+    { id: 'hexagons',   label: 'Hexagones',    icon: 'ti-hexagon' },
+    { id: 'fog',        label: 'Brume',        icon: 'ti-cloud' },
+    { id: 'fire',       label: 'Feu',          icon: 'ti-flame' },
+    { id: 'photo',      label: 'Photo',        icon: 'ti-photo' },
+];
+
+let currentBgMode = localStorage.getItem('mbz_bg_mode') || 'bubbles';
+let bgAnimFrame = null;
+let bgCanvas = null;
+let bgCtx = null;
+
+function toggleBgPanel() {
+    const panel   = document.getElementById('bgPanel');
+    const overlay = document.getElementById('bgPanelOverlay');
+    const isOpen  = panel.classList.contains('open');
+    if (isOpen) {
+        panel.classList.remove('open');
+        overlay.classList.remove('open');
+    } else {
+        panel.classList.add('open');
+        overlay.classList.add('open');
+    }
+}
+
+function closeBgPanel() {
+    document.getElementById('bgPanel').classList.remove('open');
+    document.getElementById('bgPanelOverlay').classList.remove('open');
+}
+
+
+function buildBgPanel() {
+    const cont = document.getElementById('bgOptions');
+    cont.innerHTML = BG_MODES.map(m => {
+        const isPhoto = m.id === 'photo';
+        const hasPhoto = !!localStorage.getItem('mbz_bg_photo');
+        const extra = isPhoto ? `
+            <div style="margin-top:6px;display:flex;gap:6px;align-items:center;">
+                <label for="photoUpload" style="flex:1;padding:5px 8px;border-radius:7px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);font-size:9px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;text-align:center;">
+                    ${hasPhoto ? 'Changer' : 'Choisir une photo'}
+                </label>
+                ${hasPhoto ? `<button onclick="clearPhoto()" style="padding:5px 8px;border-radius:7px;border:1px solid rgba(255,80,50,0.3);background:none;color:rgba(255,100,80,0.7);font-size:9px;cursor:pointer;">Retirer</button>` : ''}
+            </div>` : '';
+        return `<div class="bg-option ${m.id === currentBgMode ? 'active' : ''}" onclick="selectBgMode('${m.id}')">
+            <i class="ti ${m.icon}" style="font-size:16px"></i>${m.label}
+        </div>${isPhoto ? extra : ''}`;
+    }).join('');
+
+    // Input file caché
+    let inp = document.getElementById('photoUpload');
+    if (!inp) {
+        inp = document.createElement('input');
+        inp.type = 'file'; inp.id = 'photoUpload'; inp.accept = 'image/*';
+        inp.style.display = 'none';
+        document.body.appendChild(inp);
+        inp.addEventListener('change', function() {
+            if (!this.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                // Stocker en localStorage (compressé si > 2MB on avertit)
+                const data = e.target.result;
+                if (data.length > 2.5e6) {
+                    alert('Photo trop grande (max ~2 Mo recommandé). Elle sera quand même utilisée mais non sauvegardée entre sessions.');
+                    startPhoto(data);
+                } else {
+                    try { localStorage.setItem('mbz_bg_photo', data); } catch(e) {}
+                    startPhoto(data);
+                }
+                currentBgMode = 'photo';
+                localStorage.setItem('mbz_bg_mode', 'photo');
+                buildBgPanel();
+            };
+            reader.readAsDataURL(this.files[0]);
+        });
+    }
+}
+
+function clearPhoto() {
+    localStorage.removeItem('mbz_bg_photo');
+    currentBgMode = 'bubbles';
+    localStorage.setItem('mbz_bg_mode', 'bubbles');
+    buildBgPanel();
+    startBg('bubbles', currentHue);
+}
+
+function selectBgMode(mode) {
+    currentBgMode = mode;
+    localStorage.setItem('mbz_bg_mode', mode);
+    document.querySelectorAll('.bg-option').forEach(el =>
+        el.classList.toggle('active', el.textContent.trim() === BG_MODES.find(m=>m.id===mode).label));
+    closeBgPanel();
+    startBg(mode, currentHue);
+}
+
+let currentHue = 250;
+
+function startBg(mode, hue) {
+    // Stopper l'animation précédente
+    if (bgAnimFrame) { cancelAnimationFrame(bgAnimFrame); bgAnimFrame = null; }
+
+    const bg = document.getElementById('bubbles-bg');
+    // Nettoyer
+    Array.from(bg.querySelectorAll('.bubble, canvas, .bg-fog-layer, .bg-hex-layer')).forEach(el => el.remove());
+    document.getElementById('bg-base').style.background = '';
+    document.getElementById('bg-radials').style.background = '';
+
+    const bgHex = localStorage.getItem('mbz_bg') || '#2d2b5e';
+    document.getElementById('bg-base').style.background = bgHex;
+
+    switch(mode) {
+        case 'bubbles':    startBubbles(hue); break;
+        case 'gradient':   startGradient(hue, bgHex); break;
+        case 'particles':  startCanvas(hue, drawParticles); break;
+        case 'waves':      startCanvas(hue, drawWaves); break;
+        case 'stars':      startCanvas(hue, drawStars); break;
+        case 'grid':       startGrid(hue); break;
+        case 'rain':       startCanvas(hue, drawRain); break;
+        case 'hexagons':   startHexagons(hue); break;
+        case 'fog':        startFog(hue); break;
+        case 'fire':       startCanvas(hue, drawFire); break;
+        case 'photo':
+            const savedPhoto = localStorage.getItem('mbz_bg_photo');
+            if (savedPhoto) startPhoto(savedPhoto);
+            else document.getElementById('photoUpload') && document.getElementById('photoUpload').click();
+            break;
+    }
+}
+
+/* ── BULLES ── */
+function startBubbles(hue) { regenerateBubbles(hue); }
+
+/* ── DÉGRADÉ ── */
+function startGradient(hue, bgHex) {
+    const h2 = (hue+120)%360, h3 = (hue+240)%360;
+    document.getElementById('bg-radials').style.background =
+        `radial-gradient(ellipse at 20% 30%, hsla(${hue},70%,50%,0.5) 0%, transparent 55%),
+         radial-gradient(ellipse at 80% 70%, hsla(${h2},70%,50%,0.45) 0%, transparent 55%),
+         radial-gradient(ellipse at 50% 100%, hsla(${h3},60%,40%,0.35) 0%, transparent 50%)`;
+}
+
+/* ── CANVAS générique ── */
+function startCanvas(hue, drawFn) {
+    const bg = document.getElementById('bubbles-bg');
+    bgCanvas = document.createElement('canvas');
+    bgCanvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
+    bg.appendChild(bgCanvas);
+    bgCtx = bgCanvas.getContext('2d');
+
+    const state = { hue, t: 0, particles: [], stars: [], drops: [], fire: [] };
+
+    // Init state selon le mode
+    if (drawFn === drawParticles || drawFn === drawRain) {
+        const n = drawFn === drawParticles ? 80 : 120;
+        for (let i = 0; i < n; i++) state.particles.push({
+            x: Math.random(), y: Math.random(),
+            vx: (Math.random()-0.5)*0.002, vy: drawFn===drawRain ? 0.003+Math.random()*0.004 : (Math.random()-0.5)*0.002,
+            size: drawFn===drawRain ? 1+Math.random() : 2+Math.random()*3,
+            h: (hue + Math.random()*60-30+360)%360, o: 0.3+Math.random()*0.5
+        });
+    }
+    if (drawFn === drawStars) {
+        for (let i = 0; i < 200; i++) state.stars.push({
+            x: Math.random(), y: Math.random(),
+            s: Math.random()*2.5, blink: Math.random()*Math.PI*2, speed: 0.02+Math.random()*0.04
+        });
+    }
+    if (drawFn === drawFire) {
+        for (let i = 0; i < 150; i++) state.fire.push({
+            x: 0.1+Math.random()*0.8, y: 1+Math.random()*0.2,
+            vx: (Math.random()-0.5)*0.003, vy: -(0.005+Math.random()*0.008),
+            life: Math.random(), maxLife: 0.6+Math.random()*0.4, size: 3+Math.random()*8
+        });
+    }
+
+    function loop() {
+        bgCanvas.width  = bg.offsetWidth  || window.innerWidth;
+        bgCanvas.height = bg.offsetHeight || window.innerHeight;
+        bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+        drawFn(bgCtx, bgCanvas.width, bgCanvas.height, state);
+        state.t += 0.01;
+        bgAnimFrame = requestAnimationFrame(loop);
+    }
+    loop();
+}
+
+function drawParticles(ctx, w, h, s) {
+    s.particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = 1; if (p.x > 1) p.x = 0;
+        if (p.y < 0) p.y = 1; if (p.y > 1) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x*w, p.y*h, p.size, 0, Math.PI*2);
+        ctx.fillStyle = `hsla(${p.h},70%,65%,${p.o})`;
+        ctx.fill();
+    });
+    // Lignes entre proches
+    for (let i = 0; i < s.particles.length; i++)
+    for (let j = i+1; j < s.particles.length; j++) {
+        const dx = (s.particles[i].x-s.particles[j].x)*w;
+        const dy = (s.particles[i].y-s.particles[j].y)*h;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(s.particles[i].x*w, s.particles[i].y*h);
+            ctx.lineTo(s.particles[j].x*w, s.particles[j].y*h);
+            ctx.strokeStyle = `hsla(${s.hue},60%,65%,${0.15*(1-dist/120)})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+        }
+    }
+}
+
+function drawWaves(ctx, w, h, s) {
+    const layers = [
+        { a: h*0.08, freq: 2, speed: 0.8, o: 0.18, yOff: 0.4 },
+        { a: h*0.06, freq: 3, speed: 1.2, o: 0.15, yOff: 0.55 },
+        { a: h*0.05, freq: 4, speed: 0.6, o: 0.12, yOff: 0.7  },
+    ];
+    layers.forEach((l, li) => {
+        const hShift = (s.hue + li*40) % 360;
+        ctx.beginPath();
+        ctx.moveTo(0, h);
+        for (let x = 0; x <= w; x += 4) {
+            const y = l.yOff*h + Math.sin(x/w*Math.PI*l.freq + s.t*l.speed)*l.a;
+            ctx.lineTo(x, y);
+        }
+        ctx.lineTo(w, h); ctx.closePath();
+        ctx.fillStyle = `hsla(${hShift},65%,55%,${l.o})`;
+        ctx.fill();
+    });
+}
+
+function drawStars(ctx, w, h, s) {
+    s.stars.forEach(st => {
+        st.blink += st.speed;
+        const alpha = 0.3 + Math.sin(st.blink)*0.5;
+        ctx.beginPath();
+        ctx.arc(st.x*w, st.y*h, st.s, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(255,255,255,${Math.max(0,alpha)})`;
+        ctx.fill();
+        if (st.s > 1.5) {
+            ctx.beginPath();
+            ctx.arc(st.x*w, st.y*h, st.s*3, 0, Math.PI*2);
+            ctx.fillStyle = `hsla(${s.hue},80%,80%,${Math.max(0,alpha*0.08)})`;
+            ctx.fill();
+        }
+    });
+}
+
+function drawRain(ctx, w, h, s) {
+    s.particles.forEach(p => {
+        p.y += p.vy; p.x += p.vx;
+        if (p.y > 1) { p.y = -0.05; p.x = Math.random(); }
+        ctx.beginPath();
+        ctx.moveTo(p.x*w, p.y*h);
+        ctx.lineTo(p.x*w - p.vx*w*8, (p.y-p.vy*8)*h);
+        ctx.strokeStyle = `hsla(${p.h},60%,70%,${p.o})`;
+        ctx.lineWidth = p.size*0.5;
+        ctx.stroke();
+    });
+}
+
+function drawFire(ctx, w, h, s) {
+    s.fire.forEach(p => {
+        p.x += p.vx + Math.sin(s.t*2+p.y*10)*0.001;
+        p.y += p.vy;
+        p.life += 0.016;
+        if (p.life >= p.maxLife) {
+            p.x = 0.1+Math.random()*0.8; p.y = 1+Math.random()*0.1;
+            p.life = 0; p.vx = (Math.random()-0.5)*0.003;
+            p.vy = -(0.005+Math.random()*0.008);
+        }
+        const prog = p.life/p.maxLife;
+        const hFire = (s.hue + prog*60) % 360;
+        const alpha = (1-prog)*0.7;
+        const size  = p.size*(1-prog*0.5);
+        const grad = ctx.createRadialGradient(p.x*w, p.y*h, 0, p.x*w, p.y*h, size);
+        grad.addColorStop(0, `hsla(${hFire},100%,70%,${alpha})`);
+        grad.addColorStop(1, `hsla(${hFire},80%,40%,0)`);
+        ctx.beginPath();
+        ctx.arc(p.x*w, p.y*h, size, 0, Math.PI*2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+    });
+}
+
+/* ── PHOTO ── */
+function startPhoto(dataUrl) {
+    const base = document.getElementById('bg-base');
+    base.style.cssText = `
+        position:absolute; inset:0;
+        background: url('${dataUrl}') center/cover no-repeat;
+    `;
+    // Overlay sombre pour lisibilité
+    const radials = document.getElementById('bg-radials');
+    radials.style.background = 'rgba(0,0,0,0.35)';
+}
+
+/* ── GRILLE ── */
+function startGrid(hue) {
+    const bg = document.getElementById('bubbles-bg');
+    const div = document.createElement('div');
+    div.className = 'bg-hex-layer';
+    div.style.cssText = `position:absolute;inset:0;
+        background-image: linear-gradient(hsla(${hue},60%,65%,0.08) 1px, transparent 1px),
+                          linear-gradient(90deg, hsla(${hue},60%,65%,0.08) 1px, transparent 1px);
+        background-size: 40px 40px;
+        animation: gridMove 20s linear infinite;`;
+    bg.appendChild(div);
+    // Ajouter keyframes si absent
+    if (!document.getElementById('kf-grid')) {
+        const s = document.createElement('style');
+        s.id = 'kf-grid';
+        s.textContent = `@keyframes gridMove { from{background-position:0 0} to{background-position:40px 40px} }`;
+        document.head.appendChild(s);
+    }
+}
+
+/* ── HEXAGONES ── */
+function startHexagons(hue) {
+    const bg = document.getElementById('bubbles-bg');
+    const div = document.createElement('div');
+    div.className = 'bg-hex-layer';
+    const size = 50;
+    div.style.cssText = `position:absolute;inset:0;overflow:hidden;`;
+    const cols = Math.ceil(window.innerWidth / (size*1.8)) + 2;
+    const rows = Math.ceil(window.innerHeight / (size*1.6)) + 2;
+    let html = '';
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const x = c * size * 1.75 + (r%2 ? size*0.875 : 0);
+            const y = r * size * 1.52;
+            const h2 = (hue + r*15 + c*10) % 360;
+            const o  = 0.04 + Math.random()*0.08;
+            html += `<svg style="position:absolute;left:${x}px;top:${y}px;width:${size}px;height:${size}px;animation:hexPulse ${3+Math.random()*4}s ease-in-out ${Math.random()*3}s infinite alternate" viewBox="0 0 100 100"><polygon points="50,2 95,26 95,74 50,98 5,74 5,26" fill="hsla(${h2},65%,60%,${o})" stroke="hsla(${h2},65%,70%,${o*2})" stroke-width="1"/></svg>`;
+        }
+    }
+    div.innerHTML = html;
+    bg.appendChild(div);
+    if (!document.getElementById('kf-hex')) {
+        const s = document.createElement('style');
+        s.id = 'kf-hex';
+        s.textContent = `@keyframes hexPulse { from{opacity:0.4} to{opacity:1} }`;
+        document.head.appendChild(s);
+    }
+}
+
+/* ── BRUME ── */
+function startFog(hue) {
+    const bg = document.getElementById('bubbles-bg');
+    for (let i = 0; i < 6; i++) {
+        const div = document.createElement('div');
+        div.className = 'bg-fog-layer';
+        const w = 40+Math.random()*60, h2 = 20+Math.random()*30;
+        const x = Math.random()*100, y = Math.random()*100;
+        const dur = 8+Math.random()*12, delay = -Math.random()*10;
+        const hShift = (hue+i*30)%360;
+        div.style.cssText = `
+            position:absolute; border-radius:50%;
+            width:${w}vw; height:${h2}vh;
+            left:${x}%; top:${y}%;
+            background: radial-gradient(ellipse, hsla(${hShift},60%,65%,0.12) 0%, transparent 70%);
+            filter: blur(30px);
+            animation: fogDrift${i} ${dur}s ease-in-out ${delay}s infinite alternate;`;
+        bg.appendChild(div);
+        if (!document.getElementById(`kf-fog-${i}`)) {
+            const s = document.createElement('style');
+            s.id = `kf-fog-${i}`;
+            const dx = (Math.random()-0.5)*30, dy = (Math.random()-0.5)*20;
+            s.textContent = `@keyframes fogDrift${i} { from{transform:translate(0,0)} to{transform:translate(${dx}px,${dy}px)} }`;
+            document.head.appendChild(s);
+        }
+    }
+}
+
+
+
+/* ============================================= */
+
+// Appliquer le thème au démarrage depuis la couleur de fond
+document.addEventListener('DOMContentLoaded', function() {
+    const savedBg   = localStorage.getItem('mbz_bg')      || '#2d2b5e';
+    const savedMode = localStorage.getItem('mbz_bg_mode') || 'bubbles';
+    currentBgMode   = savedMode;
+    currentHue      = hexToHsl(savedBg)[0];
+
+    document.getElementById('bgColorPicker').value = savedBg;
+    // Clic sur l'icône palette → ouvre le color picker natif
+    document.querySelector('label[for="bgColorPicker"]').addEventListener('click', () => {
+        document.getElementById('bgColorPicker').click();
+    });
+    applyTheme(currentHue, hexToHsl(savedBg)[1], savedBg);
+
+    buildBgPanel();
+
+    document.getElementById('bgColorPicker').addEventListener('input', function() {
+        const hex = this.value;
+        const [h, sat] = hexToHsl(hex);
+        currentHue = h;
+        localStorage.setItem('mbz_bg', hex);
+        applyTheme(h, sat, hex);
+        startBg(currentBgMode, h);
+    });
+
+    // Fermer le panel si clic dehors
+    // Fermeture gérée par overlay et bouton ×
+});
+
+function regenerateBubbles(hue) {
+    const bg = document.getElementById('bubbles-bg');
+    // Garder uniquement le ::before (pseudo), supprimer les .bubble existantes
+    Array.from(bg.querySelectorAll('.bubble')).forEach(b => b.remove());
+    const configs = [
+        { size: 40,  h: hue,       o: 0.40, b: 0.45 },
+        { size: 60,  h: hue+40,    o: 0.35, b: 0.40 },
+        { size: 80,  h: hue-30,    o: 0.30, b: 0.35 },
+        { size: 100, h: hue+80,    o: 0.32, b: 0.38 },
+        { size: 130, h: hue+150,   o: 0.28, b: 0.32 },
+        { size: 160, h: hue-60,    o: 0.25, b: 0.30 },
+        { size: 200, h: hue+200,   o: 0.22, b: 0.28 },
+        { size: 250, h: hue+100,   o: 0.18, b: 0.22 },
+    ];
+    for (let i = 0; i < 20; i++) {
+        const cfg  = configs[Math.floor(Math.random() * configs.length)];
+        const size = cfg.size * (0.7 + Math.random() * 0.6);
+        const h2   = ((cfg.h % 360) + 360) % 360;
+        const b    = document.createElement('div');
+        b.className = 'bubble';
+        b.style.cssText = `
+            width:${size}px;height:${size}px;left:${Math.random()*100}%;
+            background:radial-gradient(circle at 35% 35%,hsla(${h2},70%,60%,${cfg.o}),hsla(${h2},50%,40%,${cfg.o*0.3}) 60%,transparent 100%);
+            border:1px solid hsla(${h2},60%,60%,${cfg.b});
+            backdrop-filter:blur(2px);
+            animation-duration:${14+Math.random()*22}s;
+            animation-delay:${-(Math.random()*(14+22))}s;
+        `;
+        bg.appendChild(b);
+    }
+}
+
+// Bulles générées par regenerateBubbles() appelé dans applyTheme()
+
+/* DONNÉES */
+const KEY = 'sanct_v4_triple';
+// catConfig supprimé — catégories fixes désormais dynamiques
+const varCats = []; // plus de catégories prédéfinies — tout est créé par l'utilisateur
+const MOIS_NOMS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+function save() { localStorage.setItem(KEY, JSON.stringify(store)); }
+
+let store = JSON.parse(localStorage.getItem(KEY)) || {
+    solde: 0, transactions: [],
+    fixes:     [],
+    variables: [],
+    tributs: [], epargne: 0,
+    historique: [],
+    historiqueMois: new Array(12).fill(null)
+};
+
+if (!store.historique) store.historique = [];
+if (!store.historiqueMois || store.historiqueMois.length !== 12) store.historiqueMois = new Array(12).fill(null);
+
+if (!store.tributs) store.tributs = [];
+// Migration : si ancienne structure plate [{lib,amt,done}], convertir en catégories
+if (store.tributs.length > 0 && store.tributs[0].lib !== undefined) {
+    const old = store.tributs;
+    store.tributs = [{ name: 'Revenus', items: old }];
+}
+if (store.epargne === undefined) store.epargne = 0;
+store.variables.forEach(c => { if (c.budget === undefined) c.budget = 0; });
+
+// Nettoyage : supprimer toutes les entrées avec name undefined/null/vide
+store.fixes     = store.fixes.filter(c => c && c.name);
+store.variables = store.variables.filter(c => c && c.name);
+store.tributs   = store.tributs.filter(c => c && c.name);
+
+// Si le store vient d'une ancienne version, vider les variables et revenus prédéfinis
+if (!store.schemaVersion || store.schemaVersion < 3) {
+    store.variables = [];
+    store.tributs   = [];
+    store.schemaVersion = 3;
+}
+save();
+
+/* NAVIGATION */
+const IS_PC = () => window.innerWidth >= 768;
+let currentPage = 2;      // index nav-bar : 0=Accueil, 1=Fixes, 2=Journal (+ catégories), 3=Historique
+let currentSwipeIdx = 1;  // position dans le swipe-track (0..3), indépendante de l'accueil
+const track       = document.getElementById('swipe-track');
+const wrapper     = document.getElementById('swipe-wrapper');
+const accueilPage = document.getElementById('accueilPage');
+
+function nav(idx) {
+    currentPage = idx;
+    document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+
+    if (idx === 0) {
+        accueilPage.style.display = 'flex';
+        if (!IS_PC()) wrapper.style.display = 'none';
+    } else {
+        accueilPage.style.display = IS_PC() ? 'flex' : 'none';
+        wrapper.style.display = 'block';
+        currentSwipeIdx = idx - 1;
+        track.style.transition = 'transform 0.35s ease';
+        track.style.transform  = `translateX(${currentSwipeIdx * -100/3}%)`;
+    }
+}
+
+let touchStartX = 0, touchStartY = 0, isDragging = false;
+wrapper.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; isDragging = false; track.style.transition = 'none'; }, { passive: true });
+wrapper.addEventListener('touchmove', e => {
+    const dx = e.touches[0].clientX - touchStartX, dy = e.touches[0].clientY - touchStartY;
+    if (!isDragging && Math.abs(dy) > Math.abs(dx)) return;
+    isDragging = true; e.preventDefault();
+    track.style.transform = `translateX(calc(${currentSwipeIdx * -100/3}% + ${dx}px))`;
+}, { passive: false });
+wrapper.addEventListener('touchend', e => {
+    if (!isDragging) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (dx < -50 && currentSwipeIdx < 2) currentSwipeIdx++;
+    else if (dx > 50 && currentSwipeIdx > 0) currentSwipeIdx--;
+    nav(currentSwipeIdx + 1);
+}, { passive: true });
+
+/* SWIPE sur la page Accueil : glisser vers la gauche ouvre Fixes (même ressenti que le swipe entre onglets) */
+let accueilTouchStartX = 0, accueilTouchStartY = 0, accueilDragging = false, accueilDx = 0;
+accueilPage.addEventListener('touchstart', e => {
+    accueilTouchStartX = e.touches[0].clientX;
+    accueilTouchStartY = e.touches[0].clientY;
+    accueilDragging = false;
+    accueilDx = 0;
+    accueilPage.style.transition = 'none';
+}, { passive: true });
+accueilPage.addEventListener('touchmove', e => {
+    const dx = e.touches[0].clientX - accueilTouchStartX, dy = e.touches[0].clientY - accueilTouchStartY;
+    if (!accueilDragging && Math.abs(dy) > Math.abs(dx)) return;
+    accueilDragging = true;
+    accueilDx = dx;
+    // suit le doigt vers la gauche ; légère résistance si on tire vers la droite (pas de page avant Accueil)
+    const translate = dx < 0 ? dx : dx * 0.25;
+    accueilPage.style.transform = `translateX(${translate}px)`;
+}, { passive: true });
+accueilPage.addEventListener('touchend', e => {
+    if (!accueilDragging) { accueilPage.style.transform = ''; return; }
+    accueilPage.style.transition = 'transform 0.35s ease';
+    if (accueilDx < -70) {
+        accueilPage.style.transform = 'translateX(-100%)';
+        setTimeout(() => {
+            accueilPage.style.transition = 'none';
+            accueilPage.style.transform = '';
+            nav(1);
+        }, 350);
+    } else {
+        accueilPage.style.transform = 'translateX(0)';
+    }
+}, { passive: true });
+
+/* CALCUL */
+function update() {
+    save();
+    let tf = 0, pf = 0, pv = 0;
+    store.fixes.forEach(c => c.items.forEach(it => { tf += it.amt; if (it.done) pf += it.amt; }));
+    store.variables.forEach(v => v.items.forEach(it => { if (it.done) pv += it.amt; }));
+
+    const tDiff     = store.transactions.filter(t => t.type === 'differe').reduce((s,t) => s + t.amt, 0);
+    const tTrib     = store.tributs.reduce((s,cat) => s + cat.items.reduce((ss,t) => ss + t.amt, 0), 0);
+    const tribPercu = store.tributs.reduce((s,cat) => s + cat.items.filter(t=>t.done).reduce((ss,t) => ss + t.amt, 0), 0);
+
+    // Épargne du mois = saisies du journal (immédiat) dans la catégorie « Épargne »
+    const isEp      = t => (t.cat || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'epargne';
+    const epMois    = store.transactions.filter(t => t.type !== 'differe' && isEp(t)).reduce((s,t) => s + t.amt, 0);
+    // Journal immédiat hors épargne (le différé n'est pas pris en compte sur le mois en cours)
+    const jImm      = store.transactions.filter(t => t.type !== 'differe' && !isEp(t)).reduce((s,t) => s + t.amt, 0);
+
+    // Solde du compte  = solde initial + revenus validés − charges fixes validées − journal immédiat − épargne
+    // Prévisionnel     = solde initial + tous les revenus − toutes les charges fixes − journal immédiat − épargne
+    // L'encours CB du mois dernier est débité ce mois-ci : déduit des deux soldes
+    const encPrec = store.encoursPrec || 0;
+    const libre  = store.solde + tribPercu - pf - jImm - epMois - encPrec;
+    const oracle = store.solde + tTrib     - tf - jImm - epMois - encPrec;
+
+    const elTrib = document.getElementById('tributsTotal');
+    if (elTrib) elTrib.textContent = '+' + tTrib.toFixed(2) + '€';
+
+    const totalFixes = store.fixes.reduce((s,c) => s + c.items.reduce((ss,i) => ss + i.amt, 0), 0);
+    const elFix = document.getElementById('fixesTotal');
+    if (elFix) elFix.textContent = totalFixes.toFixed(2) + '€';
+
+    const totalVars = store.variables.reduce((s,c) => s + c.items.reduce((ss,i) => ss + i.amt, 0) + store.transactions.filter(t=>t.cat===c.name && t.type!=='differe').reduce((ss,t)=>ss+t.amt,0), 0);
+    const elVar = document.getElementById('varsTotal');
+    if (elVar) elVar.textContent = totalVars.toFixed(2) + '€';
+
+    document.getElementById('sPrev').textContent    = oracle.toFixed(2) + '€';
+    document.getElementById('sReel').textContent    = libre.toFixed(2) + '€';
+    document.getElementById('sEncours').textContent = tDiff.toFixed(2) + '€';
+    document.getElementById('sSolde').textContent   = store.solde.toFixed(2) + '€';
+    // Résumé du mois : revenus, budget (fixes + dépenses immédiates + différées, hors épargne), balance
+    const depDiff = store.transactions.filter(t => t.type === 'differe' && !isEp(t)).reduce((s,t) => s + t.amt, 0);
+    const chargesMois = tf + jImm + depDiff;
+    const balance = tTrib - chargesMois;
+    const setT = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
+    setT('mRevenus', tTrib.toFixed(2) + '€');
+    setT('mRevenusSub', 'reçus ' + tribPercu.toFixed(0) + '€');
+    setT('mCharges', chargesMois.toFixed(2) + '€');
+    setT('mChargesSub', 'fixes ' + tf.toFixed(0) + ' · imm. ' + jImm.toFixed(0) + ' · diff. ' + depDiff.toFixed(0));
+    setT('mBalance', (balance > 0 ? '+' : '') + balance.toFixed(2) + '€');
+    const elB = document.getElementById('mBalance'); if (elB) elB.style.color = balance < 0 ? '#ff5a5a' : '#7dcfff';
+    const elEP = document.getElementById('sEncPrec'); if (elEP) elEP.textContent = (store.encoursPrec || 0).toFixed(2) + '€';
+
+    const elEp = document.getElementById('sEpargne');
+    if (elEp) elEp.textContent = ((store.epargne || 0) + epMois).toFixed(2) + '€';
+
+    const gauge = document.getElementById('bloodFill');
+    let pct = store.solde > 0 ? (libre / store.solde) * 100 : 0;
+    pct = Math.max(0, Math.min(100, pct));
+    gauge.style.width = pct + '%';
+    gauge.classList.toggle('gauge-danger', pct <= 10);
+}
+
+/* RENDER */
+function render() {
+    const gridF = document.getElementById('catsGrid');
+    gridF.innerHTML = '';
+    store.fixes.forEach((cat, idx) => {
+        const div = document.createElement('div');
+        div.className = 'cat-card';
+        div.innerHTML = `
+            <div class="cat-header" style="flex-direction:column;align-items:stretch;gap:3px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span>${cat.name}</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:13px;color:rgba(255,255,255,0.5);">${cat.items.reduce((s,i)=>s+i.amt,0)}€</span>
+                        <button onclick="delFixCat(${idx})" title="Supprimer" style="background:none;border:none;color:rgba(255,80,50,0.65);font-size:18px;cursor:pointer;padding:0;line-height:1;">×</button>
+                    </div>
+                </div>
+            </div>
+            ${cat.items.map((it,i) => `
+                <div class="item-row">
+                    <input type="checkbox" ${it.done?'checked':''} onchange="toggleItem('fix',${idx},${i})">
+                    <span class="item-label">${it.l}</span>
+                    <span class="item-amount">${it.amt}€</span>
+                    <button onclick="delItem('fix',${idx},${i})">×</button>
+                </div>`).join('')}
+            <div class="input-plus-group" style="margin-top:6px;">
+                <input type="text"   id="fi-l-${idx}" placeholder="Libellé">
+                <input type="number" id="fi-a-${idx}" placeholder="Montant €">
+                <button class="btn-plus" onclick="addItem('fix',${idx})">
+                    <video src="plus.mp4" autoplay loop muted playsinline class="btn-plus-video"></video>
+                    <span>+</span>
+                </button>
+            </div>`;
+        gridF.appendChild(div);
+    });
+
+    const gridV = document.getElementById('varsGrid');
+    gridV.innerHTML = '';
+    store.variables.forEach((cat, idx) => {
+        const journalDeps  = store.transactions.filter(t => t.cat === cat.name);
+        const totalJournal = journalDeps.filter(t => t.type !== 'differe').reduce((s,t) => s + t.amt, 0);
+        const totalItems   = cat.items.reduce((s,i) => s + i.amt, 0);
+        const totalDepense = totalJournal + totalItems;
+        const restant      = (cat.budget || 0) - totalDepense;
+        const restantColor = restant < 0 ? '#ff4444' : '#55ff88';
+        const div = document.createElement('div');
+        div.className = 'cat-card';
+        div.innerHTML = `
+            <div class="cat-header" style="flex-direction:column;align-items:stretch;gap:3px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span>${cat.name}</span>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span style="font-size:10px;color:#aaa;">Budget:</span>
+                        <input type="text" value="${cat.budget?cat.budget.toFixed(2)+'€':''}" placeholder="0€"
+                            data-numpad="budget" data-cat-idx="${idx}"
+                            onchange="setBudget(${idx},parseFloat(this.value)||0)"
+                            style="width:72px;text-align:right;background:rgba(0,0,0,0.4);border:1px solid rgba(153,0,0,0.3);border-radius:4px;color:#fff;font-size:14px;padding:4px 5px;margin-bottom:0;">
+                        <button onclick="delVarCat(${idx})" title="Supprimer" style="background:none;border:none;color:rgba(255,80,50,0.65);font-size:18px;cursor:pointer;padding:0;line-height:1;flex-shrink:0;">×</button>
+                    </div>
+                </div>
+                ${cat.budget?`<div style="display:flex;justify-content:space-between;font-size:13px;">
+                    <span style="color:#aaa;">Dépensé: <b style="color:#fff;">${totalDepense.toFixed(2)}€</b></span>
+                    <span style="color:${restantColor};">Restant: <b>${restant.toFixed(2)}€</b></span>
+                </div>`:''}
+            </div>
+            ${journalDeps.map((t,i) => `
+                <div class="item-row" style="opacity:${t.type==='differe'?0.5:0.8};">
+                    <span style="font-size:9px;color:#ffaa44;margin-right:3px;">${t.type==='differe'?'DIFF':'CB'}</span>
+                    <span class="item-label">${t.lib}</span>
+                    <span class="item-amount">-${t.amt}€</span>
+                    <button onclick="delTxByCat('${cat.name}',${store.transactions.indexOf(t)})">×</button>
+                </div>`).join('')}
+            ${cat.items.map((it,i) => `
+                <div class="item-row">
+                    <input type="checkbox" ${it.done?'checked':''} onchange="toggleItem('var',${idx},${i})">
+                    <span class="item-label">${it.l}</span>
+                    <span class="item-amount">${it.amt}€</span>
+                    <button onclick="delItem('var',${idx},${i})">×</button>
+                </div>`).join('')}
+`;
+        gridV.appendChild(div);
+    });
+
+    renderTributs();
+    renderTx();
+    renderHistorique();
+    const txCat = document.getElementById('txCat');
+    if (txCat) {
+        const v = txCat.value;
+        txCat.innerHTML = '<option value="">Catégorie</option>' + store.variables.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+        txCat.value = v;
+    }
+    update();
+}
+
+function setBudget(idx, val) { store.variables[idx].budget = parseFloat(val)||0; render(); }
+function delTxByCat(catName, txIdx) { store.transactions.splice(txIdx,1); render(); }
+
+function addFixCat() {
+    const input = document.getElementById('newFixName');
+    const name = input.value.trim();
+    if (!name) return;
+    if (store.fixes.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+        alert('Cette catégorie existe déjà.'); return;
+    }
+    store.fixes.push({ name, items: [] });
+    input.value = '';
+    render();
+}
+
+function delFixCat(idx) {
+    const cat = store.fixes[idx];
+    if (cat.items.length > 0 && !confirm(`Supprimer "${cat.name}" et ses ${cat.items.length} charge(s) ?`)) return;
+    if (cat.items.length === 0 && !confirm(`Supprimer la catégorie "${cat.name}" ?`)) return;
+    store.fixes.splice(idx, 1);
+    render();
+}
+
+function addVarCat() {
+    const input = document.getElementById('newVarName');
+    const name = input.value.trim();
+    if (!name) return;
+    if (store.variables.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+        alert('Cette catégorie existe déjà.'); return;
+    }
+    store.variables.push({ name, items: [], budget: 0 });
+    input.value = '';
+    render();
+}
+
+function delVarCat(idx) {
+    const cat = store.variables[idx];
+    if (!confirm(`Supprimer la catégorie "${cat.name}" ?`)) return;
+    // Supprimer aussi les transactions CB liées
+    store.transactions = store.transactions.filter(t => t.cat !== cat.name);
+    store.variables.splice(idx, 1);
+    render();
+}
+
+function addItem(type, idx) {
+    const prefix = type==='fix'?'fi':'vi';
+    const lEl = document.getElementById(`${prefix}-l-${idx}`);
+    const aEl = document.getElementById(`${prefix}-a-${idx}`);
+    if (!lEl || !lEl.value || !aEl.value) return;
+    const list = type==='fix' ? store.fixes[idx].items : store.variables[idx].items;
+    list.push({ l: lEl.value, amt: parseFloat(aEl.value), done: false });
+    lEl.value=''; aEl.value=''; render();
+}
+function toggleItem(type, idx, i) {
+    const list = type==='fix' ? store.fixes[idx].items : store.variables[idx].items;
+    list[i].done = !list[i].done; render();
+}
+function delItem(type, idx, i) {
+    const list = type==='fix' ? store.fixes[idx].items : store.variables[idx].items;
+    list.splice(i,1); render();
+}
+
+function renderTributs() {
+    document.getElementById('tributsList').innerHTML = store.tributs.map((cat, cidx) => {
+        const total = cat.items.reduce((s,t) => s + t.amt, 0);
+        return `<div class="cat-card tributs-card" style="margin-bottom:8px;">
+            <div class="cat-header" style="flex-direction:column;align-items:stretch;gap:3px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span>${cat.name}</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="color:#55ff88;font-size:13px;">+${total.toFixed(2)}€</span>
+                        <button onclick="delTribCat(${cidx})" style="background:none;border:none;color:rgba(255,80,50,0.65);font-size:18px;cursor:pointer;padding:0;line-height:1;">×</button>
+                    </div>
+                </div>
+            </div>
+            ${cat.items.map((t,i) => `
+                <div class="item-row">
+                    <input type="checkbox" ${t.done?'checked':''} onchange="toggleTribut(${cidx},${i})">
+                    <span class="item-label" style="${t.done?'text-decoration:line-through;opacity:0.5;':''}">${t.lib}</span>
+                    <span class="item-amount" style="color:#55ff88;">+${t.amt}€</span>
+                    <button onclick="delTribut(${cidx},${i})">×</button>
+                </div>`).join('')}
+            <div class="input-plus-group" style="margin-top:6px;">
+                <input type="text"   id="trib-l-${cidx}" placeholder="Libellé">
+                <input type="number" id="trib-a-${cidx}" placeholder="Montant €">
+                <button class="btn-plus btn-plus-green" onclick="addTribut(${cidx})">
+                    <video src="revenus.mp4" autoplay loop muted playsinline class="btn-plus-video"></video>
+                    <span>+</span>
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function addTribCat() {
+    const input = document.getElementById('newTribName');
+    const name = input.value.trim();
+    if (!name) return;
+    if (store.tributs.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+        alert('Cette catégorie existe déjà.'); return;
+    }
+    store.tributs.push({ name, items: [] });
+    input.value = '';
+    render();
+}
+
+function addTribut(cidx) {
+    const lEl = document.getElementById(`trib-l-${cidx}`);
+    const aEl = document.getElementById(`trib-a-${cidx}`);
+    if (!lEl.value || !aEl.value) return;
+    store.tributs[cidx].items.unshift({ lib: lEl.value, amt: parseFloat(aEl.value), done: false });
+    lEl.value=''; aEl.value=''; render();
+}
+function toggleTribut(cidx, i) { store.tributs[cidx].items[i].done = !store.tributs[cidx].items[i].done; render(); }
+function delTribut(cidx, i) { store.tributs[cidx].items.splice(i, 1); render(); }
+function delTribCat(cidx) {
+    const cat = store.tributs[cidx];
+    if (!confirm(`Supprimer la catégorie de revenu "${cat.name}" ?`)) return;
+    store.tributs.splice(cidx, 1);
+    render();
+}
+
+function addTx() {
+    const lEl=document.getElementById('txLib'), aEl=document.getElementById('txAmt'), cEl=document.getElementById('txCat');
+    const type=document.querySelector('input[name="txType"]:checked').value;
+    if (!lEl.value||!aEl.value) return;
+    store.transactions.unshift({ lib: lEl.value, amt: parseFloat(aEl.value), type, cat: cEl.value });
+    lEl.value=''; aEl.value=''; cEl.value=''; render();
+}
+function renderTx() {
+    document.getElementById('txList').innerHTML = store.transactions.map((t,i) => `
+        <div class="item-row">
+            <span class="item-label">${t.lib}${t.cat?' · '+t.cat:''} <span style="font-size:11px;opacity:0.6;">(${t.type})</span></span>
+            <span class="item-amount">-${t.amt}€</span>
+            <button onclick="delTx(${i})">×</button>
+        </div>`).join('');
+}
+function delTx(i) { store.transactions.splice(i,1); render(); }
+
+function renderHistorique() {
+    const el = document.getElementById('histGrid');
+    if (!el) return;
+    const eur = n => Math.round(n).toLocaleString('fr-FR') + '€';
+    const curMonth = new Date().getMonth();
+
+    // Mois en cours (prévisionnel) — mêmes formules que update()
+    const liveFixes   = store.fixes.reduce((s,c) => s + c.items.reduce((ss,i) => ss + i.amt, 0), 0);
+    const liveBudgets = store.variables.reduce((s,c) => s + (c.budget || 0), 0);
+    const liveRevenus = store.tributs.reduce((s,cat) => s + cat.items.reduce((ss,t) => ss + t.amt, 0), 0);
+    // Charges du mois en cours = toutes les charges fixes + journal immédiat (épargne comprise), comme le prévisionnel
+    const liveCharges = liveFixes + store.transactions.filter(t => t.type !== 'differe').reduce((s,t) => s + t.amt, 0) + (store.encoursPrec || 0);
+    const liveSolde   = store.solde + liveRevenus - liveCharges;
+
+    // Valeurs d'un mois : { revenus, charges, solde, kind }
+    const monthData = idx => {
+        const h = store.historiqueMois[idx];
+        if (h) return {
+            kind: 'closed',
+            revenus: h.totalRevenusRealises || 0,
+            charges: (h.totalFixes || 0) + (h.totalDepenses || 0),
+            solde:   h.nouveauSolde
+        };
+        if (idx === curMonth) return { kind: 'live', revenus: liveRevenus, charges: liveCharges, solde: liveSolde };
+        return { kind: idx < curMonth ? 'missing' : 'future' };
+    };
+    const months = MOIS_NOMS.map((label, idx) => ({ label, idx, ...monthData(idx) }));
+
+    // ═══ Résumé de l'année : mois clôturés + mois en cours ═══
+    const counted = months.filter(m => m.kind === 'closed' || m.kind === 'live');
+    const sumRev = counted.reduce((s,m) => s + m.revenus, 0);
+    const sumCha = counted.reduce((s,m) => s + m.charges, 0);
+    const lastClosed = months.filter(m => m.kind === 'closed').pop();
+    const set = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+    set('histRevenus', eur(sumRev));
+    set('histCharges', eur(sumCha));
+    set('histSolde',   eur(lastClosed ? lastClosed.solde : liveSolde));
+    set('histSoldeSub', lastClosed ? 'fin ' + lastClosed.label.toLowerCase() : 'prévu ce mois');
+    const elS = document.getElementById('histSolde');
+    if (elS) elS.classList.toggle('neg', (lastClosed ? lastClosed.solde : liveSolde) < 0);
+
+    const maxVal = Math.max(1, ...counted.map(m => Math.max(m.revenus, m.charges)));
+
+    // Regroupe les mois vides consécutifs en une seule ligne
+    const blocks = [];
+    months.forEach(m => {
+        const empty = (m.kind === 'missing' || m.kind === 'future');
+        const last = blocks[blocks.length - 1];
+        if (empty && last && last.empty && last.kind === m.kind) last.items.push(m);
+        else blocks.push(empty ? { empty: true, kind: m.kind, items: [m] } : m);
+    });
+    el.innerHTML = blocks.map(m => {
+        if (m.empty) {
+            const a = m.items[0].label, z = m.items[m.items.length - 1].label;
+            return `<div class="hm-card hm-empty"><span class="hm-month">${a === z ? a : a + ' → ' + z}</span><span class="hm-tag">${m.kind === 'future' ? 'À venir' : 'Non clôturé' + (m.items.length > 1 ? 's' : '')}</span></div>`;
+        }
+        const live = m.kind === 'live';
+        const solNeg = m.solde < 0;
+        return `<div class="hm-card ${live ? 'hm-live' : 'hm-closed'}">
+            <div class="hm-top">
+                <span class="hm-month">${m.label}</span>
+                <span class="hm-tag ${live ? 'tag-live' : 'tag-closed'}">${live ? '● En cours' : '✓ Clôturé'}</span>
+                ${live ? '' : `<button class="hm-del" onclick="delMonthHistorique(${m.idx})" title="Réinitialiser ce mois" aria-label="Réinitialiser ${m.label}">×</button>`}
+            </div>
+            <div class="hm-vals">
+                <div class="hm-val"><span class="hm-lbl">Revenus</span><span class="hm-num c-rev">${eur(m.revenus)}</span>
+                    <div class="hm-bar"><div style="width:${m.revenus / maxVal * 100}%;background:#55ff88"></div></div></div>
+                <div class="hm-val"><span class="hm-lbl">Charges</span><span class="hm-num c-cha">${eur(m.charges)}</span>
+                    <div class="hm-bar"><div style="width:${m.charges / maxVal * 100}%;background:#ff8a65"></div></div></div>
+                <div class="hm-val hm-solde"><span class="hm-lbl">${live ? 'Solde prévu' : 'Solde fin de mois'}</span><span class="hm-num ${solNeg ? 'c-neg' : 'c-sol'}">${eur(m.solde)}</span></div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function delMonthHistorique(idx) {
+    if (!confirm(`Réinitialiser ${MOIS_NOMS[idx]} ? Ce mois redeviendra un prévisionnel courant.`)) return;
+    store.historiqueMois[idx] = null;
+    save();
+    renderHistorique();
+}
+
+function editSolde() {
+    document.getElementById('butinModal').style.display='flex';
+    document.getElementById('butinInput').value=store.solde;
+}
+function confirmButin() {
+    const v=parseFloat(document.getElementById('butinInput').value);
+    if (!isNaN(v)) { store.solde=v; render(); }
+    document.getElementById('butinModal').style.display='none';
+}
+
+function grandRituel() {
+    if (!confirm("Lancer la clôture de fin de mois ?")) return;
+    document.getElementById('ritualLoader').style.display='flex';
+    setTimeout(() => {
+        const libre = parseFloat(document.getElementById('sReel').textContent);
+        const isEpC = c => (c || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'epargne';
+        const epJournal = store.transactions.filter(t=>t.type!=='differe' && isEpC(t.cat)).reduce((s,t)=>s+t.amt,0);
+        const nouvelEpargne = (store.epargne||0) + epJournal;
+
+        const totalDepenses = store.transactions.filter(t=>t.type!=='differe').reduce((s,t)=>s+t.amt,0);
+        const totalDiffere  = store.transactions.filter(t=>t.type==='differe').reduce((s,t)=>s+t.amt,0);
+        const totalRevenusRealises = store.tributs.reduce((s,cat)=>s+cat.items.filter(t=>t.done).reduce((ss,t)=>ss+t.amt,0),0);
+        const now = new Date();
+        const label = now.toLocaleDateString('fr-FR', { month:'long', year:'numeric' });
+
+        // Prévisionnel du mois (avant remise à zéro) — fige les 3 feuilles dans la bulle du mois
+        const totalFixes   = store.fixes.reduce((s,c) => s + c.items.reduce((ss,i) => ss + i.amt, 0), 0);
+        const totalVars    = store.variables.reduce((s,c) => s + (c.budget || 0), 0);
+        const totalRevenus = store.tributs.reduce((s,cat) => s + cat.items.reduce((ss,t) => ss + t.amt, 0), 0);
+
+        if (!store.historiqueMois || store.historiqueMois.length !== 12) store.historiqueMois = new Array(12).fill(null);
+        store.historiqueMois[now.getMonth()] = {
+            label,
+            date: now.toISOString(),
+            ancienSolde: store.solde,
+            nouveauSolde: libre,
+            epargne: nouvelEpargne,
+            totalDepenses,
+            totalDiffere,
+            totalRevenusRealises,
+            totalFixes,
+            totalVars,
+            totalRevenus
+        };
+
+        store.epargne = nouvelEpargne;
+        store.solde = libre;
+        // Le différé du mois devient l'« encours CB du mois dernier »
+        store.encoursPrec = totalDiffere;
+        store.transactions = [];
+        store.fixes.forEach(cat => cat.items.forEach(it => it.done = false));
+        store.tributs.forEach(cat => cat.items.forEach(it => it.done = false));
+        store.variables.forEach(cat=>{ cat.items.forEach(it=>it.done=false); cat.budget=0; });
+        render();
+        document.getElementById('ritualLoader').style.display='none';
+    }, 1000);
+}
+
+function razTotal() {
+    if (!confirm("Remise à zéro complète ?")) return;
+    localStorage.removeItem(KEY); location.reload();
+}
+
+/* SAUVEGARDE (export + import + QR) */
+let qrCodeInstance = null;
+function openSauvegardeModal() {
+    document.getElementById('saveCodeArea').value = btoa(JSON.stringify(store));
+    document.getElementById('qrCodeContainer').style.display = 'none';
+    document.getElementById('qrScanArea').style.display = 'none';
+    stopQrScan();
+    document.getElementById('sauvegardeModal').style.display = 'flex';
+}
+function closeSauvegardeModal() {
+    document.getElementById('sauvegardeModal').style.display = 'none';
+    stopQrScan();
+}
+function copyCode() {
+    const ta = document.getElementById('saveCodeArea');
+    ta.select();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(ta.value).then(() => alert('Copié !')).catch(() => {
+            try { document.execCommand('copy'); alert('Copié !'); } catch(e) { alert("Impossible de copier."); }
+        });
+    } else {
+        try { document.execCommand('copy'); alert('Copié !'); } catch(e) { alert("Impossible de copier."); }
+    }
+}
+function toggleQrDisplay() {
+    const container = document.getElementById('qrCodeContainer');
+    if (container.style.display === 'block') { container.style.display = 'none'; return; }
+    const code = document.getElementById('saveCodeArea').value || btoa(JSON.stringify(store));
+    container.innerHTML = '';
+    try {
+        qrCodeInstance = new QRCode(container, {
+            text: code, width: 200, height: 200,
+            colorDark: '#000000', colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.L
+        });
+        container.style.display = 'block';
+    } catch (e) {
+        alert("Sauvegarde trop volumineuse pour tenir dans un QR code. Utilise plutôt Copier.");
+    }
+}
+
+let qrScanStream = null;
+let qrScanRAF = null;
+function toggleQrScan() {
+    const area = document.getElementById('qrScanArea');
+    if (area.style.display === 'block') { stopQrScan(); return; }
+    area.style.display = 'block';
+    document.getElementById('qrScanStatus').textContent = 'Vise le QR code avec la caméra...';
+    const video = document.getElementById('qrVideo');
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(stream => {
+            qrScanStream = stream;
+            video.srcObject = stream;
+            video.play();
+            qrScanRAF = requestAnimationFrame(qrScanLoop);
+        })
+        .catch(() => {
+            document.getElementById('qrScanStatus').textContent = "Impossible d'accéder à la caméra.";
+        });
+}
+function qrScanLoop() {
+    const video  = document.getElementById('qrVideo');
+    const canvas = document.getElementById('qrCanvas');
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const result = jsQR(imageData.data, imageData.width, imageData.height);
+        if (result && result.data) {
+            document.getElementById('importCodeArea').value = result.data;
+            stopQrScan();
+            confirmImport();
+            return;
+        }
+    }
+    qrScanRAF = requestAnimationFrame(qrScanLoop);
+}
+function stopQrScan() {
+    document.getElementById('qrScanArea').style.display = 'none';
+    if (qrScanRAF) { cancelAnimationFrame(qrScanRAF); qrScanRAF = null; }
+    if (qrScanStream) { qrScanStream.getTracks().forEach(t => t.stop()); qrScanStream = null; }
+}
+
+function confirmImport() {
+    try {
+        const decoded = JSON.parse(atob(document.getElementById('importCodeArea').value));
+        if (confirm("Remplacer les données actuelles ?")) { store=decoded; save(); location.reload(); }
+    } catch(e) { alert("Code invalide."); }
+}
+
+(function checkDiffere() {
+    const now = new Date();
+    const currentMonth = now.getFullYear()+'-'+(now.getMonth()+1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    if (false && now.getDate()===lastDay && store.lastDiffMonth!==currentMonth) { // désactivé : le différé est reporté à la clôture de fin de mois
+        const tDiff = store.transactions.filter(t=>t.type==='differe').reduce((s,t)=>s+t.amt,0);
+        if (tDiff>0) {
+            store.transactions = store.transactions.map(t=>t.type==='differe'?{...t,type:'immediat'}:t);
+            store.lastDiffMonth = currentMonth; save();
+            alert('Fin de mois : '+tDiff.toFixed(2)+'€ différés basculés.');
+        }
+    }
+})();
+
+render();
+nav(2);
+
+</script>
+
+<!-- OVERLAY fond panel -->
+<div id="bgPanelOverlay" class="bg-panel-overlay" onclick="closeBgPanel()"></div>
+
+<!-- PANNEAU SÉLECTION FOND — hors app-container pour z-index indépendant -->
+<div id="bgPanel" class="bg-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="bg-panel-title" style="margin:0;">Arrière-plan</div>
+        <button onclick="closeBgPanel()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:20px;cursor:pointer;line-height:1;padding:0;">×</button>
+    </div>
+    <label for="bgColorPicker" style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:10px;border-radius:9px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);cursor:pointer;">
+        <i class="ti ti-palette" style="font-size:16px;color:rgba(255,255,255,0.75);"></i>
+        <span style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.5px;color:rgba(255,255,255,0.75);text-transform:uppercase;">Couleur du thème</span>
+    </label>
+    <input type="color" id="bgColorPicker" value="#2d2b5e" title="Couleur du fond">
+    <div class="bg-options" id="bgOptions"></div>
+</div>
+
+<!-- FENÊTRE CLAVIER NUMÉRIQUE -->
+<div id="numpadOverlay" onclick="if(event.target===this)closeNumpad()">
+    <div id="numpadWin" role="dialog" aria-modal="true" aria-labelledby="npCat">
+        <div id="numpadDeco"></div>
+        <div class="np-head">
+            <div class="np-head-icon"><span id="npIcon">🪙</span></div>
+            <div class="np-head-text">
+                <div class="np-kind" id="npKind">Montant</div>
+                <div class="np-cat" id="npCat">—</div>
+                <div class="np-lib" id="npLib"></div>
+            </div>
+            <button class="np-close" onclick="closeNumpad()" aria-label="Fermer">×</button>
+        </div>
+        <div class="np-display empty" id="npDisplay">0 €</div>
+        <div class="np-keys" id="npKeys"></div>
+        <div class="np-actions">
+            <button class="np-key np-cancel" onclick="closeNumpad()">Annuler</button>
+            <button class="np-key np-ok" onclick="validateNumpad()"><i class="ti ti-check" style="margin-right:6px"></i>Valider</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* =============================================
+   CLAVIER NUMÉRIQUE
+   Chaque champ de montant ouvre cette fenêtre.
+   Fond : dégradé calculé depuis la teinte du thème (currentHue)
+   Décor : icônes liées à la catégorie (mots-clés du nom + libellé)
+   ============================================= */
+const NP_ICONS = [
+    [['loyer','logement','maison','appart','habitation','credit immo','pret immo','syndic','charges copro'], ['🏠','🏡','🔑']],
+    [['assurance','mutuelle','prevoyance'], ['💵','💲','🛡️']],
+    [['edf','electric','energie','engie'], ['⚡','💡','🔌']],
+    [['gaz','chauffage'], ['🔥','♨️']],
+    [['eau','veolia'], ['💧','🚿']],
+    [['internet','box','wifi','fibre','free','orange','sfr','bouygues'], ['📶','🌐','💻']],
+    [['telephone','portable','mobile','forfait'], ['📱','☎️']],
+    [['sante','medecin','pharma','docteur','dentiste','hopital','soin'], ['💊','🩺','🏥']],
+    [['course','supermarche','alimentation','nourriture','epicerie','leclerc','carrefour','auchan','lidl','intermarche','marche'], ['🛒','🥖','🍎','🧀']],
+    [['restau','resto','repas','dejeuner','diner','fast','mcdo','kebab','pizza','uber eat'], ['🍔','🍕','🍽️']],
+    [['cafe','bar','sortie','boisson','apero','biere','alcool'], ['☕','🍺','🍷']],
+    [['essence','carburant','gasoil','diesel','plein'], ['⛽','🚗']],
+    [['voiture','auto','parking','peage','garage','entretien'], ['🚗','🔧','🅿️']],
+    [['transport','bus','metro','train','sncf','navigo','tram','taxi','uber'], ['🚌','🚆','🚕']],
+    [['vacance','voyage','avion','hotel','sejour','week'], ['✈️','🏖️','🧳']],
+    [['vetement','habit','fringue','chaussure','mode','shopping'], ['👕','👟','🛍️']],
+    [['cadeau','anniv','noel','fete'], ['🎁','🎉','🎂']],
+    [['enfant','bebe','creche','nounou','garde','cantine'], ['👶','🧸','🍼']],
+    [['ecole','etude','formation','livre','fourniture'], ['🎒','📚','✏️']],
+    [['animal','chat','chien','veto','croquette'], ['🐾','🐶','🐱']],
+    [['netflix','spotify','disney','abonnement','streaming','prime video','canal','deezer'], ['📺','🎬','🎵']],
+    [['loisir','cinema','jeu','game','concert','musique'], ['🎮','🎬','🎵']],
+    [['sport','salle','gym','fitness','piscine','club'], ['🏋️','⚽','🏃']],
+    [['coiffeur','beaute','cosmetique','esthet'], ['💇','💅','✂️']],
+    [['impot','taxe','tresor','amende'], ['🏛️','🧾','💶']],
+    [['credit','pret','emprunt','banque','frais bancaire'], ['🏦','💳','💸']],
+    [['epargne','livret','economie','placement'], ['🐷','💰','📈']],
+    [['salaire','paie','paye','travail','job','boulot'], ['💼','💶','💰']],
+    [['freelance','facture','client','prestation'], ['💻','🧾','💶']],
+    [['caf','aide','allocation','apl','chomage','pole emploi','france travail','rsa'], ['🤝','💶','🏛️']],
+    [['bricolage','travaux','jardin','meuble','ikea'], ['🔨','🪴','🛋️']],
+    [['don','charite','association'], ['❤️','🤝']],
+    [['tabac','cigarette'], ['🚬']],
+];
+const NP_DEFAULTS = {
+    fix:    { kind: 'Charge fixe',      icons: ['🧾','📅','💶'] },
+    var:    { kind: 'Dépense variable', icons: ['🛍️','👛','🪙'] },
+    budget: { kind: 'Budget',           icons: ['👛','📊','🪙'] },
+    trib:   { kind: 'Revenu',           icons: ['💶','💰','📈'] },
+    cb:     { kind: 'Dépense CB',       icons: ['💳','🧾','🪙'] },
+    solde:  { kind: 'Solde initial',    icons: ['🏦','💰','🐷'] },
+    other:  { kind: 'Montant',          icons: ['🪙','🧮'] },
+};
+function npNorm(s) { return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function npIconsFor(type, cat, lib) {
+    const txt = ' ' + npNorm(cat) + ' ' + npNorm(lib) + ' ';
+    let icons = [];
+    NP_ICONS.forEach(([keys, ics]) => {
+        if (keys.some(k => txt.includes(k))) ics.forEach(i => { if (!icons.includes(i)) icons.push(i); });
+    });
+    const def = (NP_DEFAULTS[type] || NP_DEFAULTS.other).icons;
+    if (!icons.length) icons = def.slice();
+    else if (icons.length < 3) def.forEach(i => { if (icons.length < 4 && !icons.includes(i)) icons.push(i); });
+    return icons;
+}
+
+/* Retrouve la catégorie liée au champ */
+function npContext(el) {
+    const id = el.id || '';
+    let m;
+    const val = x => x ? x.value : '';
+    if ((m = id.match(/^fi-a-(\d+)$/))   && store.fixes[m[1]])     return { type:'fix',  cat: store.fixes[m[1]].name,     lib: val(document.getElementById('fi-l-'+m[1])) };
+    if ((m = id.match(/^vi-a-(\d+)$/))   && store.variables[m[1]]) return { type:'var',  cat: store.variables[m[1]].name, lib: val(document.getElementById('vi-l-'+m[1])) };
+    if ((m = id.match(/^trib-a-(\d+)$/)) && store.tributs[m[1]])   return { type:'trib', cat: store.tributs[m[1]].name,   lib: val(document.getElementById('trib-l-'+m[1])) };
+    if (id === 'txAmt') return { type:'cb', cat: val(document.getElementById('txCat')) || 'Dépenses', lib: val(document.getElementById('txLib')) };
+    if (id === 'butinInput') return { type:'solde', cat: 'Compte', lib: '' };
+    if (el.dataset.numpad === 'budget' && store.variables[el.dataset.catIdx]) return { type:'budget', cat: store.variables[el.dataset.catIdx].name, lib: '' };
+    return { type:'other', cat: el.placeholder && el.placeholder !== '€' ? el.placeholder : 'Saisie', lib: '' };
+}
+
+let npState = null;
+const NP_LAYOUT = ['7','8','9','4','5','6','1','2','3',',','0','⌫'];
+
+function npBuildKeys(allowNeg) {
+    const keys = NP_LAYOUT.slice();
+    const box = document.getElementById('npKeys');
+    box.innerHTML = keys.map(k => {
+        const fn = (k === '⌫' || k === ',');
+        const label = k === '⌫' ? '<i class="ti ti-backspace"></i>' : k;
+        return `<button class="np-key${fn?' np-fn':''}" data-k="${k}" aria-label="${k==='⌫'?'Effacer':k}">${label}</button>`;
+    }).join('') +
+    `<button class="np-key np-fn" data-k="C" aria-label="Tout effacer">C</button>` +
+    `<button class="np-key np-fn" data-k="00"${allowNeg ? '' : ' style="grid-column:span 2"'}>00</button>` +
+    (allowNeg ? `<button class="np-key np-fn" data-k="±" aria-label="Changer le signe">±</button>` : '');
+}
+
+function npDecorate(icons) {
+    const hue = (typeof currentHue === 'number' ? currentHue : 250);
+    const h2 = (hue + 40) % 360, h3 = (hue + 330) % 360;
+    const win = document.getElementById('numpadWin');
+    win.style.background = `
+        radial-gradient(circle at 15% 10%, hsla(${h2},85%,65%,0.45) 0%, transparent 45%),
+        radial-gradient(circle at 90% 85%, hsla(${h3},80%,55%,0.40) 0%, transparent 50%),
+        linear-gradient(160deg, hsl(${hue},70%,40%) 0%, hsl(${(hue+20)%360},65%,26%) 55%, hsl(${h3},60%,13%) 100%)`;
+    // Images de la catégorie dispersées en fond de fenêtre
+    let html = '';
+    const cols = 4, rows = 5;
+    for (let i = 0; i < cols * rows; i++) {
+        const ic = icons[i % icons.length];
+        const col = i % cols, row = Math.floor(i / cols);
+        const x = col * (100/cols) + Math.random() * 10 - 2;
+        const y = row * (100/rows) + Math.random() * 8 - 2;
+        const size = 34 + Math.random() * 30;
+        const rot = Math.round(Math.random() * 40 - 20);
+        const op = (0.30 + Math.random() * 0.20).toFixed(2);
+        html += `<span style="left:${x}%;top:${y}%;font-size:${size}px;opacity:${op};--r:${rot}deg;animation-duration:${3 + Math.random()*4}s;animation-delay:${-Math.random()*4}s">${ic}</span>`;
+    }
+    document.getElementById('numpadDeco').innerHTML = html;
+    document.getElementById('npIcon').textContent = icons[0];
+}
+
+function npRender() {
+    const d = document.getElementById('npDisplay');
+    const s = npState.buf;
+    const empty = (s === '' || s === '-');
+    d.classList.toggle('empty', empty);
+    let txt = empty ? '0' : s;
+    // séparateur de milliers
+    const neg = txt.startsWith('-'); if (neg) txt = txt.slice(1);
+    let [int, dec] = txt.split(',');
+    int = (int || '0').replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    d.textContent = (neg ? '−' : '') + int + (dec !== undefined ? ',' + dec : '') + ' €';
+}
+
+function npPress(k) {
+    if (!npState) return;
+    let s = npState.buf;
+    const neg = s.startsWith('-'); let body = neg ? s.slice(1) : s;
+    if (k === '⌫') body = body.slice(0, -1);
+    else if (k === 'C') body = '';
+    else if (k === '±') { if (npState.allowNeg) { npState.buf = neg ? body : '-' + body; npRender(); } return; }
+    else if (k === ',' || k === '.') { if (!body.includes(',')) body = (body || '0') + ','; }
+    else if (/^\d+$/.test(k)) {
+        for (const c of k) {
+            const dec = body.split(',')[1];
+            if (dec !== undefined && dec.length >= 2) break;
+            if (body.replace(',', '').length >= 9) break;
+            if (body === '0' && c !== ',') body = c; else body += c;
+        }
+    }
+    npState.buf = (neg ? '-' : '') + body;
+    npRender();
+}
+
+function openNumpad(el, onDone) {
+    const ctx = npContext(el);
+    const def = NP_DEFAULTS[ctx.type] || NP_DEFAULTS.other;
+    let cur = String(el.value || '').replace('€','').replace(/\s/g,'').trim();
+    let curNum = parseFloat(cur.replace(',', '.'));
+    npState = {
+        el, onDone,
+        allowNeg: ctx.type === 'solde',
+        buf: (!isNaN(curNum) && curNum !== 0) ? String(+curNum.toFixed(2)).replace('.', ',') : ''
+    };
+    document.getElementById('npKind').textContent = def.kind;
+    document.getElementById('npCat').textContent = ctx.cat;
+    document.getElementById('npLib').textContent = ctx.lib || '';
+    npDecorate(npIconsFor(ctx.type, ctx.cat, ctx.lib));
+    npBuildKeys(npState.allowNeg);
+    npRender();
+    el.classList.add('np-active');
+    document.getElementById('numpadOverlay').classList.add('open');
+}
+
+function closeNumpad() {
+    document.getElementById('numpadOverlay').classList.remove('open');
+    if (npState && npState.el) { npState.el.classList.remove('np-active'); npState.el.blur(); }
+    document.querySelectorAll('.np-active').forEach(x => x.classList.remove('np-active'));
+    if (document.activeElement && document.activeElement.matches && document.activeElement.matches(NP_SELECTOR)) document.activeElement.blur();
+    npState = null;
+}
+
+function validateNumpad() {
+    if (!npState) return;
+    const { el, onDone, buf } = npState;
+    const num = parseFloat(buf.replace(',', '.'));
+    const out = isNaN(num) ? '' : String(+num.toFixed(2));
+    closeNumpad();
+    if (onDone) { onDone(isNaN(num) ? null : +num.toFixed(2)); return; }
+    el.value = out;
+    el.dispatchEvent(new Event('input',  { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+/* Touches du clavier virtuel */
+document.getElementById('npKeys').addEventListener('click', e => {
+    const b = e.target.closest('[data-k]'); if (b) npPress(b.dataset.k);
+});
+/* Clavier physique quand la fenêtre est ouverte */
+document.addEventListener('keydown', e => {
+    if (!npState) return;
+    const k = e.key;
+    let mapped = null;
+    if (/^\d$/.test(k)) mapped = k;
+    else if (k === ',' || k === '.') mapped = ',';
+    else if (k === 'Backspace') mapped = '⌫';
+    else if (k === 'Delete') mapped = 'C';
+    else if (k === '-' && npState.allowNeg) mapped = '±';
+    else if (k === 'Enter') { e.preventDefault(); validateNumpad(); return; }
+    else if (k === 'Escape') { e.preventDefault(); closeNumpad(); return; }
+    if (mapped) {
+        e.preventDefault(); npPress(mapped);
+        const btn = document.querySelector(`#npKeys [data-k="${mapped}"]`);
+        if (btn) { btn.classList.add('pressed'); setTimeout(() => btn.classList.remove('pressed'), 110); }
+    }
+});
+
+/* Tous les champs de montant : pas de clavier système, ouverture de la fenêtre */
+const NP_SELECTOR = 'input[type="number"], input[data-numpad]';
+function npPrepInputs(root) {
+    (root.querySelectorAll ? root : document).querySelectorAll(NP_SELECTOR).forEach(inp => {
+        if (inp.dataset.npReady) return;
+        inp.dataset.npReady = '1';
+        inp.readOnly = true;
+        inp.setAttribute('inputmode', 'none');
+        inp.style.cursor = 'pointer';
+    });
+}
+npPrepInputs(document);
+new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) npPrepInputs(n.parentNode || n); })))
+    .observe(document.body, { childList: true, subtree: true });
+document.addEventListener('focusin', e => {
+    const el = e.target;
+    if (!el.matches || !el.matches(NP_SELECTOR) || npState) return;
+    el.blur();
+    openNumpad(el);
+});
+
+/* Encours CB du mois dernier : modifiable au clavier */
+function editEncoursPrec() {
+    const inp = document.getElementById('butinInput');
+    inp.value = store.encoursPrec || 0;
+    npState = null;
+    openNumpad(inp, v => { if (v !== null) { store.encoursPrec = v; render(); } });
+    document.getElementById('npKind').textContent = 'Encours CB';
+    document.getElementById('npCat').textContent = 'Mois dernier';
+    npState.allowNeg = false; npBuildKeys(false);
+}
+
+/* Solde : ouvre directement le clavier */
+editSolde = function() {
+    const inp = document.getElementById('butinInput');
+    inp.value = store.solde;
+    openNumpad(inp, v => { if (v !== null) { store.solde = v; render(); } });
+};
+</script>
+
+<!-- PAGE DÉTAIL D'UNE CATÉGORIE -->
+<div id="catDetail" role="dialog" aria-modal="true" aria-labelledby="cdName">
+    <div id="cdDeco"></div>
+    <div class="cd-head" style="max-width:520px;margin-left:auto;margin-right:auto;">
+        <button class="cd-back" onclick="closeCatDetail()" aria-label="Retour">←</button>
+        <div class="cd-emoji" id="cdEmoji"></div>
+        <div class="cd-title"><div class="cd-kind" id="cdKind"></div><div class="cd-name" id="cdName"></div></div>
+    </div>
+    <div id="cdBody"></div>
+</div>
+
+<script>
+/* =============================================
+   CARTES RÉSUMÉ + PAGE DÉTAIL
+   Les cartes complètes restent générées par render() (cachées),
+   la carte de la catégorie ouverte est déplacée dans la page détail.
+   ============================================= */
+let catDetailOpen = null; // { type: 'fix'|'var'|'trib', name }
+const CD_KIND = { fix: 'Charge fixe', var: 'Dépense variable', trib: 'Revenu' };
+function sumEsc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function sumEur(n) { return (Math.round(n * 100) / 100).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + '€'; }
+function sumEmoji(type, name) { return npIconsFor(type, name, '')[0]; }
+function varSpent(cat) {
+    const j = store.transactions.filter(t => t.cat === cat.name && t.type !== 'differe').reduce((s, t) => s + t.amt, 0);
+    return j + cat.items.reduce((s, i) => s + i.amt, 0);
+}
+function sumCard(type, cat) {
+    const name = sumEsc(cat.name), em = sumEmoji(type, cat.name);
+    let body = '';
+    if (type === 'fix') {
+        const tot = cat.items.reduce((s, i) => s + i.amt, 0), done = cat.items.filter(i => i.done).length;
+        body = `<div class="sum-amt">${sumEur(tot)}</div><div class="sum-sub">${cat.items.length ? done + '/' + cat.items.length + ' payée' + (done > 1 ? 's' : '') : 'Aucune charge'}</div>`;
+    } else if (type === 'trib') {
+        const tot = cat.items.reduce((s, i) => s + i.amt, 0), done = cat.items.filter(i => i.done).length;
+        body = `<div class="sum-amt" style="color:#55ff88">+${sumEur(tot)}</div><div class="sum-sub">${cat.items.length ? done + '/' + cat.items.length + ' reçu' + (done > 1 ? 's' : '') : 'Aucun revenu'}</div>`;
+    } else {
+        const sp = varSpent(cat), bud = cat.budget || 0, pct = bud ? Math.min(100, sp / bud * 100) : 0;
+        const over = bud && sp > bud, col = over ? '#ff4444' : pct > 80 ? '#ffaa44' : '#55ff88';
+        body = `<div class="sum-amt">${sumEur(sp)}</div>
+                <div class="sum-sub">${bud ? 'sur ' + sumEur(bud) + ' · reste <b style="color:' + col + '">' + sumEur(bud - sp) + '</b>' : 'Pas de budget'}</div>
+                ${bud ? `<div class="sum-bar"><div style="width:${pct}%;background:${col}"></div></div>` : ''}`;
+    }
+    return `<button class="sum-card${type === 'trib' ? ' green' : ''}" onclick="openCatDetail('${type}', this.dataset.name)" data-name="${name}">
+        <span class="sum-emoji">${em}</span><span class="sum-arrow">›</span>
+        <div class="sum-name">${name}</div>${body}</button>`;
+}
+function sumFill(id, type, list, emptyTxt) {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = list.length ? list.map(c => sumCard(type, c)).join('') : `<div class="sum-empty">${emptyTxt}</div>`;
+}
+function renderSummaries() {
+    sumFill('sumFix',  'fix',  store.fixes,     'Ajoute une catégorie de charges ci-dessus');
+    sumFill('sumTrib', 'trib', store.tributs,   'Ajoute une catégorie de revenus ci-dessus');
+    sumFill('sumVar',  'var',  store.variables, 'Ajoute une catégorie ci-dessus');
+    sumFill('sumJournal', 'var', store.variables, 'Appuie sur + pour créer une catégorie (Courses, Essence…)');
+}
+
+function cdFindCard() {
+    if (!catDetailOpen) return null;
+    const { type, name } = catDetailOpen;
+    const list = type === 'fix' ? store.fixes : type === 'var' ? store.variables : store.tributs;
+    const idx = list.findIndex(c => c.name === name);
+    if (idx < 0) return null;
+    const grid = document.getElementById(type === 'fix' ? 'catsGrid' : type === 'var' ? 'varsGrid' : 'tributsList');
+    return grid.querySelectorAll(':scope > .cat-card')[idx] || null;
+}
+function syncCatDetail() {
+    const box = document.getElementById('cdBody');
+    if (!catDetailOpen) { box.innerHTML = ''; return; }
+    const card = cdFindCard();
+    if (!card) { closeCatDetail(); return; }  // catégorie supprimée
+    box.innerHTML = '';
+    box.appendChild(card);
+}
+function openCatDetail(type, name) {
+    catDetailOpen = { type, name };
+    const hue = (typeof currentHue === 'number' ? currentHue : 250), h3 = (hue + 330) % 360;
+    const el = document.getElementById('catDetail');
+    el.style.background = `radial-gradient(circle at 15% 8%, hsla(${(hue+40)%360},85%,60%,0.40) 0%, transparent 45%),
+        linear-gradient(165deg, hsl(${hue},60%,30%) 0%, hsl(${(hue+20)%360},55%,18%) 55%, hsl(${h3},55%,9%) 100%)`;
+    const icons = npIconsFor(type, name, '');
+    let deco = '';
+    for (let i = 0; i < 18; i++) {
+        const x = (i % 3) * 33 + Math.random() * 18, y = Math.floor(i / 3) * 17 + Math.random() * 8;
+        deco += `<span style="left:${x}%;top:${y}%;font-size:${40 + Math.random()*30}px;opacity:${(0.12 + Math.random()*0.1).toFixed(2)};transform:rotate(${Math.round(Math.random()*40-20)}deg)">${icons[i % icons.length]}</span>`;
+    }
+    document.getElementById('cdDeco').innerHTML = deco;
+    document.getElementById('cdEmoji').textContent = icons[0];
+    document.getElementById('cdKind').textContent = CD_KIND[type];
+    document.getElementById('cdName').textContent = name;
+    el.classList.add('open'); el.scrollTop = 0;
+    syncCatDetail();
+}
+function closeCatDetail() {
+    catDetailOpen = null;
+    document.getElementById('catDetail').classList.remove('open');
+    document.getElementById('cdBody').innerHTML = '';
+    render();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && catDetailOpen && !npState) closeCatDetail(); });
+
+/* Brancher sur render() existant */
+const _renderOrig = render;
+render = function() { _renderOrig(); renderSummaries(); syncCatDetail(); };
+renderSummaries();
+</script>
+
+<!-- FENÊTRE NOUVELLE CATÉGORIE -->
+<div id="newCatOverlay" onclick="if(event.target===this)closeNewCat()">
+    <div id="newCatWin" role="dialog" aria-modal="true" aria-labelledby="ncTitle">
+        <div id="ncDeco"></div>
+        <div class="nc-head">
+            <div class="nc-emoji" id="ncEmoji">🧾</div>
+            <div><div class="nc-kind" id="ncKind">Fixes</div><div class="nc-title" id="ncTitle">Nouvelle catégorie</div></div>
+        </div>
+        <input type="text" id="ncName" placeholder="Nom de la catégorie" autocomplete="off" maxlength="40">
+        <div class="nc-err" id="ncErr"></div>
+        <div class="nc-sugg" id="ncSugg"></div>
+        <div class="nc-actions">
+            <button class="nc-cancel" onclick="closeNewCat()">Annuler</button>
+            <button class="nc-ok" onclick="confirmNewCat()">+ Créer</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* =============================================
+   NOUVELLE CATÉGORIE — gros « + » à côté des titres
+   ============================================= */
+const NC_CONF = {
+    fix:  { kind: 'Charges fixes', list: () => store.fixes,     input: 'newFixName',  add: () => addFixCat(),
+            sugg: ['Loyer','Électricité','Eau','Internet','Téléphone','Assurance','Crédit','Abonnements','Impôts'] },
+    trib: { kind: 'Revenus',       list: () => store.tributs,   input: 'newTribName', add: () => addTribCat(),
+            sugg: ['Salaire','Prime','CAF','Freelance','Remboursement'] },
+    var:  { kind: 'Catégorie de dépenses',     list: () => store.variables, input: 'newVarName',  add: () => addVarCat(),
+            sugg: ['Courses','Essence','Restaurants','Sorties','Shopping','Santé','Cadeaux','Loisirs','Épargne'] },
+};
+let ncType = null;
+function ncEsc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function ncRefresh() {
+    const name = document.getElementById('ncName').value;
+    const icons = npIconsFor(ncType, name, '');
+    const em = document.getElementById('ncEmoji');
+    if (em.textContent !== icons[0]) { em.textContent = icons[0]; em.classList.add('pop'); setTimeout(() => em.classList.remove('pop'), 200); }
+    let deco = '';
+    for (let i = 0; i < 12; i++) {
+        const x = (i % 4) * 25 + Math.random() * 12, y = Math.floor(i / 4) * 33 + Math.random() * 15;
+        deco += `<span style="left:${x}%;top:${y}%;font-size:${30 + Math.random()*24}px;opacity:${(0.18 + Math.random()*0.12).toFixed(2)};transform:rotate(${Math.round(Math.random()*40-20)}deg)">${icons[i % icons.length]}</span>`;
+    }
+    document.getElementById('ncDeco').innerHTML = deco;
+}
+function openNewCat(type) {
+    ncType = type;
+    const conf = NC_CONF[type];
+    const hue = (typeof currentHue === 'number' ? currentHue : 250);
+    const h = type === 'trib' ? 145 : hue, h3 = (h + 330) % 360;
+    document.getElementById('newCatWin').style.background = `
+        radial-gradient(circle at 15% 10%, hsla(${(h+40)%360},85%,65%,0.45) 0%, transparent 45%),
+        linear-gradient(160deg, hsl(${h},65%,40%) 0%, hsl(${(h+20)%360},60%,26%) 55%, hsl(${h3},55%,13%) 100%)`;
+    document.getElementById('ncKind').textContent = conf.kind;
+    const inp = document.getElementById('ncName');
+    inp.value = '';
+    document.getElementById('ncErr').textContent = '';
+    const existing = conf.list().map(c => c.name.toLowerCase());
+    document.getElementById('ncSugg').innerHTML = conf.sugg.filter(s => !existing.includes(s.toLowerCase()))
+        .map(s => `<button class="nc-chip" data-s="${ncEsc(s)}">${npIconsFor(type, s, '')[0]} ${ncEsc(s)}</button>`).join('');
+    document.getElementById('ncEmoji').textContent = '';
+    ncRefresh();
+    document.getElementById('newCatOverlay').classList.add('open');
+    setTimeout(() => inp.focus(), 60);
+}
+function closeNewCat() {
+    document.getElementById('newCatOverlay').classList.remove('open');
+    ncType = null;
+}
+function confirmNewCat() {
+    if (!ncType) return;
+    const conf = NC_CONF[ncType];
+    const name = document.getElementById('ncName').value.trim();
+    const err = document.getElementById('ncErr');
+    if (!name) { err.textContent = 'Donne un nom à la catégorie.'; return; }
+    if (conf.list().some(c => c.name.toLowerCase() === name.toLowerCase())) { err.textContent = 'Cette catégorie existe déjà.'; return; }
+    document.getElementById(conf.input).value = name;
+    conf.add();
+    closeNewCat();
+}
+document.getElementById('ncName').addEventListener('input', () => { document.getElementById('ncErr').textContent = ''; ncRefresh(); });
+document.getElementById('ncName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); confirmNewCat(); }
+    if (e.key === 'Escape') { e.preventDefault(); closeNewCat(); }
+});
+document.getElementById('ncSugg').addEventListener('click', e => {
+    const b = e.target.closest('.nc-chip'); if (!b) return;
+    document.getElementById('ncName').value = b.dataset.s; ncRefresh();
+    document.getElementById('ncName').focus();
+});
+</script>
+
+<!-- FENÊTRE NOUVELLE DÉPENSE CB -->
+<div id="cbOverlay" onclick="if(event.target===this)closeCbWin()">
+    <div id="cbWin" role="dialog" aria-modal="true" aria-label="Nouvelle dépense CB">
+        <div id="cbDeco"></div>
+        <div class="nc-head">
+            <div class="nc-emoji" id="cbEmoji">💳</div>
+            <div style="flex:1"><div class="nc-kind">Dépenses</div><div class="nc-title">Nouvelle dépense</div></div>
+            <button class="np-close" onclick="closeCbWin()" aria-label="Fermer">×</button>
+        </div>
+        <div id="cbSlot"></div>
+        <div class="nc-err" id="cbErr" style="margin-top:8px"></div>
+        <button class="nc-cancel" style="width:100%;height:44px;border-radius:14px;color:#fff;border:1px solid rgba(255,255,255,0.3);cursor:pointer" onclick="closeCbWin()">Annuler</button>
+    </div>
+</div>
+
+<script>
+/* =============================================
+   JOURNAL — gros « + » : la saisie CB s'ouvre en fenêtre
+   (le formulaire existant est déplacé dans la fenêtre, mêmes ids)
+   ============================================= */
+(function () {
+    const card = document.getElementById('txLib').closest('.cat-card');
+    card.classList.add('cb-form');
+    const hdr = card.querySelector('.cat-header'); if (hdr) hdr.remove();
+    document.getElementById('cbSlot').appendChild(card);
+})();
+function cbRefresh() {
+    const cat = document.getElementById('txCat').value, lib = document.getElementById('txLib').value;
+    const icons = npIconsFor('cb', cat, lib);
+    document.getElementById('cbEmoji').textContent = icons[0];
+    let deco = '';
+    for (let i = 0; i < 16; i++) {
+        const x = (i % 4) * 25 + Math.random() * 12, y = Math.floor(i / 4) * 25 + Math.random() * 12;
+        deco += `<span style="left:${x}%;top:${y}%;font-size:${30 + Math.random()*26}px;opacity:${(0.16 + Math.random()*0.12).toFixed(2)};transform:rotate(${Math.round(Math.random()*40-20)}deg)">${icons[i % icons.length]}</span>`;
+    }
+    document.getElementById('cbDeco').innerHTML = deco;
+}
+function openCbWin() {
+    const hue = (typeof currentHue === 'number' ? currentHue : 250), h3 = (hue + 330) % 360;
+    document.getElementById('cbWin').style.background = `
+        radial-gradient(circle at 15% 10%, hsla(${(hue+40)%360},85%,65%,0.45) 0%, transparent 45%),
+        linear-gradient(160deg, hsl(${hue},65%,40%) 0%, hsl(${(hue+20)%360},60%,26%) 55%, hsl(${h3},55%,13%) 100%)`;
+    document.getElementById('cbErr').textContent = '';
+    cbRefresh();
+    document.getElementById('cbOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('txLib').focus(), 60);
+}
+function closeCbWin() { document.getElementById('cbOverlay').classList.remove('open'); }
+function submitTx() {
+    const lib = document.getElementById('txLib').value.trim(), amt = document.getElementById('txAmt').value;
+    const err = document.getElementById('cbErr');
+    if (!lib) { err.textContent = 'Indique un libellé.'; return; }
+    if (!amt) { err.textContent = 'Indique un montant.'; return; }
+    addTx();
+    closeCbWin();
+}
+document.getElementById('txLib').addEventListener('input', () => { document.getElementById('cbErr').textContent = ''; cbRefresh(); });
+document.getElementById('txCat').addEventListener('change', cbRefresh);
+document.getElementById('txAmt').addEventListener('change', () => { document.getElementById('cbErr').textContent = ''; });
+document.getElementById('txLib').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('txAmt').focus(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('cbOverlay').classList.contains('open') && !npState) closeCbWin(); });
+</script>
+</body>
+</html>
